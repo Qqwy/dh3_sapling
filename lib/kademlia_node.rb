@@ -85,7 +85,7 @@ class KademliaNode
 	end
 
 	#Iterative node lookup.
-	def iterative_find_node(key_hash, value=nil, use_find_value=false)
+	def iterative_find_node(key_hash, use_find_value=false)
 		shortlist_index = bucket_for_hash(key_hash)
 		shortlist = @contact_buckets[shortlist_index]
 		closest_node, closest_distance = save_closest_contact(shortlist, key_hash)
@@ -97,13 +97,15 @@ class KademliaNode
 		shortlist.each do |contact|
 			if use_find_value then
 				result = find_value(contact, key_hash)
-				if result.kind_of? String then
+				puts result
+				if result["found"] then
 					#Save result in closest node that did *not* return the value
-					store(closest_node, key_hash, value)
+					store(closest_node, key_hash, result["value"])
 
 					return result
 				else
-					new_shortlist = result
+					new_shortlist = result["closest_nodes"]
+					puts new_shortlist
 				end
 			else
 				new_shortlist = find_node(contact, key_hash)
@@ -135,9 +137,9 @@ class KademliaNode
 	end
 
 
-	def iterative_find_value(key, value)
-		result = iterative_find_node(key, value, true)
-		return result
+	def iterative_find_value(key)
+		result = iterative_find_node(key, true)
+		return result["value"]
 	end
 
 	#if @@tRefresh has passed for a certain bucket, call this
