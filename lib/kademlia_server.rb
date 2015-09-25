@@ -1,3 +1,42 @@
+require 'xmlrpc/server'
+
+class KademliaServer
+	attr_accessor :node, :port, :s
+	def initialize(node, port)
+		@node = node
+		@port = port
+		@s = XMLRPC::Server.new(@port)
+
+		@s.add_handler('kademlia.ping') do 
+			@node.handle_ping
+		end
+		
+		@s.add_handler('kademlia.store') do |key, value|
+			@node.handle_store(key, value)
+		end
+		
+		@s.add_handler('kademlia.find_node') do |key_hash| 
+			@node.handle_find_node(key_hash)
+		end
+		
+		@s.add_handler('kademlia.find_value') do |key_hash| 
+			@node.handle_find_value(key_hash)
+		end
+
+		@s.set_default_handler do |name, *args|
+			raise XMLRPC::FaultException.new(-99, "Method #{name} missing,  or wrong number of parameters!")
+ 		end
+
+
+		@s.serve #Start server.
+	end
+end
+
+#ks = KademliaServer.new({},8080)
+
+
+
+=begin
 require 'eventmachine'
 
 class KademliaServer < EventMachine::Connection
@@ -47,3 +86,4 @@ class KademliaStubServer
 
 	end
 end
+=end

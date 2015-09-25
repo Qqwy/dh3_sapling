@@ -15,17 +15,17 @@ class KademliaNode
 
 
 
-	attr_accessor :node_id, :identifier, :keys, :contact_buckets
+	attr_accessor :node_id, :identifier, :store, :contact_buckets
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
 	def initialize(identifier, known_nodes=[])
 		@identifier = identifier
 		@node_id = $digest_class.digest identifier
-		@keys = {} #Value Store, keys are hash digests of the values.
+		@store = {} #Value Store, keys are hash digests of the values.
 
 		 # Buckets of contacts. 
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
-		@contact_buckets = Array.new(@@k).map {|x| []}
+		@contact_buckets = (0...@@k).collect {[]}
 
 		known_nodes.each do |contact|
 			add_contact_to_buckets(contact)
@@ -36,24 +36,52 @@ class KademliaNode
 	end
 
 	def ping(contact)
-		#TODO
+		contact.client.ping
+	end
+
+	def handle_ping
+		puts "returning pong to ping"
+		return "pong"
 	end
 
 	#Primitive operation to require contact to store data.
 	def store(contact, key, value)
-		#TODO
+		contact.client.store(key,value)
 	end
 
-	#Primitive operation to require contact to return up to@@k KademliaContacts closest to given key
+	def handle_store(key, value)
+		@store[key] = value
+		puts "Storing `#{key}` => `#{value}`)"
+		return true
+	end
+
+	#Primitive operation to require contact to return up to @@k KademliaContacts closest to given key
 	def find_node(contact, key_hash)
-		#TODO
+		json_contacts = contact.client.find_node(key_hash)
+		json_contacts.map{|json_contact| KademliaContact.from_hash(json_contact)}
+	end
+
+	def handle_find_node(key_hash)
+		sorted_contacts = @contact_buckets.flatten.sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
+		puts "Returning closest nodes:"
+		puts sorted_contacts.inspect
+		return sorted_contacts.take(@@k).map {|contact| contact.to_json}
 	end
 
 	#Primitive operation to ask contact to return either:
 	# => the value for the specific key_hash, if he has it.
 	# => if not, return the result of `#find_node` (closest contacts that might know it)
 	def find_value(contact, key_hash)
-		
+		contact.client.find_value(key_hash)
+	end
+
+	def handle_find_value(key_hash)
+		if @store.include?(key_hash) then
+			puts "found value on this node. Returning `#{key_hash}` => `#{@store[key_hash]}`"
+			return {found: true, key: key_hash, value: @store[key_hash]} 
+		end
+		puts "value for `#{key_hash}` not found. Returning closest nodes."
+		return {found: false, closest_nodes: handle_find_node(key_hash)}
 	end
 
 	#Iterative node lookup.
