@@ -11,13 +11,22 @@
 
 class StubDigest
 	def self.digest(hash)
-		return hash
+		return hash.to_s
 	end
 end
 
-require 'digest'
-$digest_class = StubDigest#Digest::SHA256 #Used for internal digest creation. Change to use a different kind of hashing type. Everything goes, as long as it supports the .digest(string) method
+class SHA256Digest
+	require 'digest'
+	require 'base64'
 
+	def self.digest(hash)
+		return Base64.urlsafe_encode64(Digest::SHA256.digest(hash.to_s))
+		#.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+	end
+end
+
+$digest_class = SHA256Digest #Used for internal digest creation. Change to use a different kind of hashing type. Everything goes, as long as it supports the .digest(string) method
+#StubDigest
 
 
 

@@ -11,8 +11,8 @@ class KademliaServer
 			@node.handle_ping
 		end
 		
-		@s.add_handler('kademlia.store') do |key, value|
-			@node.handle_store(key, value)
+		@s.add_handler('kademlia.store') do |value|
+			@node.handle_store(value)
 		end
 		
 		@s.add_handler('kademlia.find_node') do |key_hash| 

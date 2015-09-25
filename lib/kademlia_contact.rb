@@ -6,8 +6,8 @@ class KademliaContact
 	attr_accessor :identifier, :node_id, :ip, :port, :path, :last_contact_time
 
 	def initialize(identifier, address, port, path:"/", contact_time: Time.now())
-		@identifier = identifier
-		@node_id = $digest_class.digest identifier
+		@identifier = identifier.to_s
+		@node_id = $digest_class.digest @identifier
 		@address = address
 		@port = port
 		@path = path
@@ -15,7 +15,12 @@ class KademliaContact
 	end
 
 	def client
-		return KademliaClient.new(@address, @port, path: @path)
+		begin 
+			yield KademliaClient.new(@address, @port, path: @path)
+		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
+       Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+       		puts "Connecting to `#{@address}:#{@port} -> #{@path}` threw the following error: #{e}"
+   		end
 	end
 
 	def to_json

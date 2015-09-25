@@ -15,8 +15,8 @@ class KademliaClient
 		@xmlrpc_client.call('kademlia.ping')
 	end
 
-	def store(key,value)
-		@xmlrpc_client.call('kademlia.store', key, value)
+	def store(value)
+		@xmlrpc_client.call('kademlia.store', value)
 	end
 
 	def find_node(key_hash)

@@ -5,8 +5,8 @@ require 'rest_client'
 
 class KademliaNode
 	@@alpha = 3		# degree of paralellism in network calls
-	@@B = 256 		# length of a SHA256 digest
-	@@k = 20 		# maximum number of stored contacts.
+	@@B = 256 		# number of bits in a SHA256 digest, e.g. 256.
+	@@k = 20 		# maximum number of stored contacts per bucket.
 
 	@@tExpire = 86500 		#time after which a key/value pair expires. Time To Live from *original* publication date. Note that this is significantly longer than tRepublish to prevent a race condition.
 	@@tRefresh = 3600 		#time after which an otherwise unaccessed bucket must be refreshed.
@@ -19,13 +19,13 @@ class KademliaNode
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
 	def initialize(identifier, known_nodes=[])
-		@identifier = identifier
-		@node_id = $digest_class.digest identifier
+		@identifier = identifier.to_s
+		@node_id = $digest_class.digest @identifier
 		@store = {} #Value Store, keys are hash digests of the values.
 
 		 # Buckets of contacts. 
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
-		@contact_buckets = (0...@@k).collect {[]}
+		@contact_buckets = (0...@@B).collect {[]}
 
 		known_nodes.each do |contact|
 			add_contact_to_buckets(contact)
@@ -36,7 +36,10 @@ class KademliaNode
 	end
 
 	def ping(contact)
-		contact.client.ping
+		contact.client do |c|
+			c.ping
+		end
+
 	end
 
 	def handle_ping
@@ -45,34 +48,46 @@ class KademliaNode
 	end
 
 	#Primitive operation to require contact to store data.
-	def store(contact, key, value)
-		contact.client.store(key,value)
+	def store(contact, value)
+		contact.client do |c|
+			c.store(value)
+		end
+		puts "Value stored. Reference key: `#{$digest_class.digest value}`"
 	end
 
-	def handle_store(key, value)
+	def handle_store(value)
+		key = $digest_class.digest value
 		@store[key] = value
-		puts "Storing `#{key}` => `#{value}`)"
+		puts "Storing `#{key}` => `#{value}`) on server #{@identifier}"
 		return true
 	end
 
 	#Primitive operation to require contact to return up to @@k KademliaContacts closest to given key
 	def find_node(contact, key_hash)
-		json_contacts = contact.client.find_node(key_hash)
-		json_contacts.map{|json_contact| KademliaContact.from_hash(json_contact)}
+		puts "searching for closest node."
+		contact.client do |c| 
+			hashed_contacts = c.find_node(key_hash)
+			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
+			puts "result of find_node: `#{result}`"
+			return result
+		end
+		return []
 	end
 
 	def handle_find_node(key_hash)
 		sorted_contacts = @contact_buckets.flatten.sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
-		puts "Returning closest nodes:"
-		puts sorted_contacts.inspect
-		return sorted_contacts.take(@@k).map {|contact| contact.to_json}
+		result = sorted_contacts.take(@@k).map {|contact| contact.to_json}
+		puts "Returning closest nodes: `#{result}`"
+		return result
 	end
 
 	#Primitive operation to ask contact to return either:
 	# => the value for the specific key_hash, if he has it.
 	# => if not, return the result of `#find_node` (closest contacts that might know it)
 	def find_value(contact, key_hash)
-		contact.client.find_value(key_hash)
+		contact.client do |c|
+			c.find_value(key_hash)
+		end
 	end
 
 	def handle_find_value(key_hash)
@@ -100,11 +115,11 @@ class KademliaNode
 				puts result
 				if result["found"] then
 					#Save result in closest node that did *not* return the value
-					store(closest_node, key_hash, result["value"])
+					store(closest_node, result["value"])
 
 					return result
 				else
-					new_shortlist = result["closest_nodes"]
+					new_shortlist = result["closest_nodes"].map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
 					puts new_shortlist
 				end
 			else
@@ -128,17 +143,22 @@ class KademliaNode
 
 
 		#If no value, return a list of max @@k nodes that are closest to it.
-		return shortlist.sort {|a,b| calc_distance(a.node_id, key_hash) <=> calc_distance(b.node_id, key_hash)}.take(@@k)
+		return @contact_buckets.flatten.sort {|a,b| calc_distance(a.node_id, key_hash) <=> calc_distance(b.node_id, key_hash)}.take(@@k)
 	end
 
-	def iterative_store(key, value)
-		contact = iterative_find_node(key)
-		store(contact, key, value)
+	def iterative_store(value)
+		key = $digest_class.digest value
+		closest_contacts = iterative_find_node(key)
+		closest_contacts.each do |contact|
+			store(contact, value)
+		end
 	end
 
 
 	def iterative_find_value(key)
 		result = iterative_find_node(key, true)
+		puts "Result of iterative_find_value: `#{result}`"
+		return nil if result.empty? || result.kind_of?(Array)
 		return result["value"]
 	end
 
@@ -160,6 +180,8 @@ class KademliaNode
 		if contacts.empty? then
 			return []
 		end
+		puts "saving closest contact: `#{contacts.inspect}`"
+		#puts contacts
 
 		closest_node = contacts.first
 		closest_distance = calc_distance(closest_node.node_id, key_hash)
@@ -179,7 +201,9 @@ class KademliaNode
 	end
 
 	#Changes a hash in string representation to a Bignum.
-	def hash_as_num(hash)
+	def hash_as_num(base64_hash)
+		require 'base64'
+		hash = Base64.decode64(base64_hash)
 		hash.bytes.inject {|a, b| (a << 8) + b }
 	end
 
