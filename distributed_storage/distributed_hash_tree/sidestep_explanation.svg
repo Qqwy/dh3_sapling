@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="482.2731mm"
+   height="118.67062mm"
+   viewBox="0 0 1708.8417 420.48643"
+   id="svg4234"
+   version="1.1"
+   inkscape:version="0.91 r"
+   sodipodi:docname="sidestep_explanation.svg">
+  <defs
+     id="defs4236">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path4817"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 Z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5798"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path5800"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 Z"
+         style="fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker5124"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:collect="always">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 Z"
+         id="path5126"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path4823"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="779.71518"
+     inkscape:cy="80.983558"
+     inkscape:document-units="px"
+     inkscape:current-layer="g5711"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1029"
+     inkscape:window-x="1440"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     showborder="true"
+     fit-margin-top="10"
+     fit-margin-left="10"
+     fit-margin-right="10"
+     fit-margin-bottom="10" />
+  <metadata
+     id="metadata4239">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-214.19546,-122.61593)">
+    <g
+       id="g5711">
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker5124)"
+         d="m 582.22759,272.22425 0,122.85715"
+         id="path5122"
+         inkscape:connector-curvature="0" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path5796"
+         d="m 941.02246,462.95235 122.85724,0"
+         style="fill:#ff0000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker5798)" />
+      <g
+         id="g6903"
+         transform="translate(17.10201,0)">
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:'CMU Sans';-inkscape-font-specification:'CMU Sans';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="404.80716"
+           y="188.43962"
+           id="text4782"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan4784"
+             x="404.80716"
+             y="188.43962">key<tspan
+   style="font-size:64.99999762%;baseline-shift:sub"
+   id="tspan4786">parent</tspan>,</tspan><tspan
+             id="tspan6496"
+             sodipodi:role="line"
+             x="404.80716"
+             y="238.43962"> value<tspan
+   id="tspan5730"
+   style="font-size:64.99999762%;baseline-shift:sub">parent</tspan> = …</tspan></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text6505"
+           y="229.50505"
+           x="367.14288"
+           style="font-style:normal;font-weight:normal;font-size:80px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           xml:space="preserve"><tspan
+             y="229.50505"
+             x="367.14288"
+             id="tspan6507"
+             sodipodi:role="line">(</tspan></text>
+        <text
+           transform="scale(-1,1)"
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:80px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="-763.10828"
+           y="229.50505"
+           id="text6509"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan6511"
+             x="-763.10828"
+             y="229.50505">(</tspan></text>
+      </g>
+      <g
+         id="g6914"
+         transform="translate(158.59337,0)">
+        <text
+           sodipodi:linespacing="125%"
+           id="text4800"
+           y="445.26053"
+           x="423.65143"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:'CMU Sans';-inkscape-font-specification:'CMU Sans';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           xml:space="preserve"><tspan
+             y="445.26053"
+             x="423.65143"
+             id="tspan4802"
+             sodipodi:role="line">key<tspan
+   id="tspan4804"
+   style="font-size:64.99999762%;text-align:center;baseline-shift:sub;text-anchor:middle">child1</tspan> = hash(key<tspan
+   id="tspan4806"
+   style="font-size:64.99999762%;text-align:center;baseline-shift:sub;text-anchor:middle">parent</tspan> ∥ salt),</tspan><tspan
+             id="tspan6499"
+             y="495.26053"
+             x="423.65143"
+             sodipodi:role="line">value<tspan
+   id="tspan5728"
+   style="font-size:64.99999762%;text-align:center;baseline-shift:sub;text-anchor:middle">child1</tspan> = …</tspan></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text6505-3"
+           y="477.44031"
+           x="84.160156"
+           style="font-style:normal;font-weight:normal;font-size:80px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           xml:space="preserve"><tspan
+             y="477.44031"
+             x="84.160156"
+             id="tspan6507-3"
+             sodipodi:role="line">(</tspan></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text6531"
+           y="482.36218"
+           x="-763.10828"
+           style="font-style:normal;font-weight:normal;font-size:80px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           xml:space="preserve"
+           transform="scale(-1,1)"><tspan
+             y="482.36218"
+             x="-763.10828"
+             id="tspan6533"
+             sodipodi:role="line">(</tspan></text>
+      </g>
+      <g
+         id="g6926"
+         transform="translate(141.42136,0)">
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:'CMU Sans';-inkscape-font-specification:'CMU Sans';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="1348.0123"
+           y="449.30112"
+           id="text5778"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan5780"
+             x="1348.0123"
+             y="449.30112">key<tspan
+   style="font-size:64.99999762%;text-align:center;baseline-shift:sub;text-anchor:middle"
+   id="tspan5782">child2</tspan> = hash(hash(key<tspan
+   style="font-size:64.99999762%;text-align:center;baseline-shift:sub;text-anchor:middle"
+   id="tspan5784">parent</tspan> ∥ salt)),</tspan><tspan
+             id="tspan6502"
+             sodipodi:role="line"
+             x="1348.0123"
+             y="499.30112">value<tspan
+   style="font-size:64.99999762%;text-align:center;baseline-shift:sub;text-anchor:middle"
+   id="tspan5786">child2</tspan> = …</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:80px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="944.81012"
+           y="477.44031"
+           id="text6817"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan6819"
+             x="944.81012"
+             y="477.44031">(</tspan></text>
+        <text
+           transform="scale(-1,1)"
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:80px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="-1753.0577"
+           y="482.36218"
+           id="text6821"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan6823"
+             x="-1753.0577"
+             y="482.36218">(</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>
