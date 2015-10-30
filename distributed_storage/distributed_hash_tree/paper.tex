@@ -65,7 +65,7 @@
 
 
 
-\title{the Distributed Hash Tree
+\title{The Distributed Hash Tree
 }
 \date{\today}
 \author{Wiebe-Marten Wijnja
@@ -236,3 +236,15 @@ Instead of encrypting the data, it is also possible to encrypt the whole set of 
 
 % Rewrite/Remove this paragraph?
 One way to ensure this uniqueness is by using a one-way hashing function\footnote{examples of one-way hashing functions here} on the value. The advantage is that it becomes (nearly\footnote{pidgeonhole principle}) impossible for two differing values to have a key-collision. The drawback of this is that, when knowing only the key, it is impossible to find any other versions, as it is impossible to link key hashes this way.
+
+
+%Enveloped Public Key Encryption (EPKE) 
+% -> Authentication (User known by signature)
+% -> Non-repudiation(Cannot clame not made when having signature)
+% -> Confidentiality(Encrypted data, if wanted)
+% -> Integrity(When attempting to change data, signature will become invalid)
+% -> Destroying value hard in Distributed Hash Table.
+
+
+%Sybil Attack on Distributed Hash Table can be prevented by using a Private/Public key pair, and then using the hash of the public key as node ID. (By publicizing the Public Key, the Node ID and a signature of the Node ID, others can check that indeed, the Node ID is correct). This mean that the only way to archieve a duplicate Node ID is by iterating through all possible private keys.
+
