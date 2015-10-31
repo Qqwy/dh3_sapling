@@ -5,7 +5,7 @@ class Direction
 	def initialize(hash_class, key)
 		throw "Unsupported Hash Class (does not respond to `digest(string)` )" unless hash_class.respond_to?(:digest)
 		@hash_class = hash_class
-		@key = key
+		@key = $hash_class.digest(key)
 	end
 
 	def hash(input)
@@ -14,6 +14,28 @@ class Direction
 
 	def next_key
 		hash(@key)
+	end
+
+	def key=(key)
+		@key = $hash_class.digest(key)
+	end
+
+	def iterate_keys(amount=nil)
+		keys = []
+		loop do
+			unless amount.nil?
+				amount -= 1
+				if amount < 0
+					break
+				end
+			end
+			if block_given?
+				yield self.next_key
+			else
+				keys << self.next_key
+			end
+		end
+		keys
 	end
 
 
@@ -32,7 +54,7 @@ end
 class SaltDirection < Direction
 	
 	attr_accessor :salt
-	def initialize(hash_class,start_key, salt)
+	def initialize(hash_class, start_key, salt)
 		super(hash_class, start_key)
 		@salt = salt.to_s
 	end

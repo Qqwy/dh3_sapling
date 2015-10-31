@@ -48,7 +48,11 @@ class TreeTraverser
 		puts found_nodes
 		found_nodes.each { |key,node| node.collection=found_nodes}
 
-		return found_nodes[root_key]
+		unless found_nodes[root_key]
+			return Tree.new(self.hash_class, nil)
+		end
+
+		return Tree.from_existing_collection(self.hash_class, found_nodes, found_nodes[root_key]) 
 	end
 
 
@@ -81,9 +85,9 @@ class TreeTraverser
 
 				json_value = JSON.parse(value[:value], symbolize_names: true)
 				#TODO: Verify signature here?
-				return FilledTreeNode.new(key, value[:value], json_value[:d], json_value[:r], json_value[:l], json_value[:s])
+				return FilledTreeNode.new(self.hash_class, key, value[:value], json_value[:d], json_value[:r], json_value[:l], json_value[:s])
 			rescue => e
-				return EmptyTreeNode.new(key, nil, e)
+				return EmptyTreeNode.new(self.hash_class, key, nil, e)
 			end
 
 		end

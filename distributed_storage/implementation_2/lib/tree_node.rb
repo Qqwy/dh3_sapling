@@ -1,3 +1,4 @@
+#A node in the iterated-directions-tree
 class TreeNode
 
 	attr_reader :key, :value

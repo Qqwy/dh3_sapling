@@ -10,6 +10,6 @@ require './lib/tree_node'
 require './lib/empty_tree_node'
 require './lib/filled_tree_node'
 require './lib/tree_traverser'
-
+require './lib/tree'
 
 require './test.rb'

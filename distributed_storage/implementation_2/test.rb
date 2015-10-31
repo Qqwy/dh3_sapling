@@ -40,7 +40,8 @@ $dht.store($ssd.next_key, $val2.to_json)
 
 $tt = TreeTraverser.new($hash_class, $dht, $directions)
 
-$rn = $tt.build_tree($key1)
+$tree = $tt.build_tree($key1)
+$rn = $tree.root_node
 
 puts $rn.children.first.data
 
@@ -51,4 +52,5 @@ $saltd.key = $key1
 $tt.save_tree($rn.collection, $saltd)
 
 
-$rn2 = $tt.build_tree($key1)
+$tree2 = $tt.build_tree($key1)
+$rn2 = $tree2.root_node
