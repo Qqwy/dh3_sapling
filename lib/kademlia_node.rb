@@ -6,7 +6,7 @@ require 'rest_client'
 class KademliaNode
 	@@alpha = 3		# degree of paralellism in network calls
 	@@B = 256 		# number of bits in a SHA256 digest, e.g. 256.
-	@@k = 20 		# maximum number of stored contacts per bucket.
+	@@k = 8 		# maximum number of stored contacts per bucket.
 
 	@@tExpire = 86500 		#time after which a key/value pair expires. Time To Live from *original* publication date. Note that this is significantly longer than tRepublish to prevent a race condition.
 	@@tRefresh = 3600 		#time after which an otherwise unaccessed bucket must be refreshed.

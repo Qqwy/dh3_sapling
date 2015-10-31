@@ -28,6 +28,11 @@ class SHA256Digest
 	def self.to_num(hash_as_str)
 		hash_as_str.to_i(16)
 	end
+
+	# Also known as `B` in the Kademlia specification. The key-space size.
+	def self.hash_size
+		2**256
+	end
 end
 
 $digest_class = SHA256Digest #Used for internal digest creation. Change to use a different kind of hashing type. Everything goes, as long as it supports the .digest(string) method
