@@ -4,15 +4,16 @@ class KademliaServer
 	attr_accessor :node, :port, :s
 	def initialize(node, port)
 		@node = node
+		node.server = self
 		@port = port
 		@s = XMLRPC::Server.new(@port)
 
-		@s.add_handler('kademlia.ping') do 
-			@node.handle_ping
+		@s.add_handler('kademlia.ping') do |contact_info|
+			@node.handle_ping(contact_info)
 		end
 		
-		@s.add_handler('kademlia.store') do |value|
-			@node.handle_store(value)
+		@s.add_handler('kademlia.store') do |key, value|
+			@node.handle_store(key, value)
 		end
 		
 		@s.add_handler('kademlia.find_node') do |key_hash| 
@@ -27,8 +28,13 @@ class KademliaServer
 			raise XMLRPC::FaultException.new(-99, "Method #{name} missing,  or wrong number of parameters!")
  		end
 
+ 		@event_thread = Thread.new do
+			@s.serve #Start server.
+		end
+	end
 
-		@s.serve #Start server.
+	def stop
+		Thread.kill(@event_thread)
 	end
 end
 

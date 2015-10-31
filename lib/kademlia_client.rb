@@ -11,12 +11,12 @@ class KademliaClient
 		@xmlrpc_client = XMLRPC::Client.new(address, path, port)
 	end
 
-	def ping
-		@xmlrpc_client.call('kademlia.ping')
+	def ping(contact_info)
+		@xmlrpc_client.call('kademlia.ping', contact_info)
 	end
 
-	def store(value)
-		@xmlrpc_client.call('kademlia.store', value)
+	def store(key, value)
+		@xmlrpc_client.call('kademlia.store',key, value)
 	end
 
 	def find_node(key_hash)

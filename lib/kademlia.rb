@@ -20,8 +20,13 @@ class SHA256Digest
 	require 'base64'
 
 	def self.digest(hash)
-		return Base64.urlsafe_encode64(Digest::SHA256.digest(hash.to_s))
+		return Digest.hexencode Digest::SHA2.digest(hash)
+		#return Base64.urlsafe_encode64(Digest::SHA256.digest(hash.to_s))
 		#.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+	end
+
+	def self.to_num(hash_as_str)
+		hash_as_str.to_i(16)
 	end
 end
 
