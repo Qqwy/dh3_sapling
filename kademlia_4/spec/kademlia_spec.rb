@@ -125,31 +125,6 @@ describe KademliaNode do
 	end
 
 
-	describe "#bucket_for_hash" do 
-		it "takes a hash and returns hash index" do
-			result = @kn.bucket_for_hash('contact1')
-			expect(result).to be_a_kind_of Numeric
-			expect(result).to be < @kn.contact_buckets.length
-		end
-	end
-
-	describe "#add_contact_to_buckets" do 
-		# it "adds a contact to the correct bucket" do
-		# 	contact = KademliaContact.new("contact3", "127.0.0.1", "3003")
-		# 	@kn.add_contact_to_buckets(contact)
-		# 	expect(@kn.bucket_for_hash("contact3")).to include(contact)
-		# end
-	end
-
-	describe "#sort_bucket_contracts" do 
-		it "sorts all buckets, prefering ones wight older `last_contact_time`" do 
-			sorted_bucket = @kn.sort_bucket_contacts(0)
-			bucket_times = sorted_bucket.map {|e| e.last_contact_time}
-			is_sorted = bucket_times.each_cons(2).all? { |a, b| (a <=> b) <= 0 }
-			expect(is_sorted).to be true
-		end
-	end
-
 	describe "#save_closest_contact" do 
 		it "should return an empty array when passed an empty array" do 
 			expect(@kn.save_closest_contact([], $digest_class.digest("100")).empty?).to be true

@@ -40,5 +40,10 @@ class KademliaBucketList
 		end
 	end
 
+	#TODO: Find out if necessary to grab other buckets if not enough contacts?
+	def closest_contacts(hash)
+		return find_bucket_for(hash).contacts
+	end
+
 
 end

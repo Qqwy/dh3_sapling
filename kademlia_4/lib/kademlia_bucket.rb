@@ -35,6 +35,10 @@ class KademliaBucket
 		self.size >= @max_size
 	end
 
+	def empty?
+		self.contacts.empty?
+	end
+
 	def <<(contact)
 		if @contacts.include? contact 
 			return false

@@ -15,7 +15,7 @@ class KademliaNode
 
 
 
-	attr_accessor :node_id, :identifier, :data_store, :contact_buckets, :server
+	attr_accessor :node_id, :identifier, :data_store, :bucket_list, :server
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
 	def initialize(identifier, known_nodes=[])
@@ -25,10 +25,10 @@ class KademliaNode
 
 		 # Buckets of contacts. 
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
-		@contact_buckets = (0...@@B).collect {[]}
+		@bucket_list = KademliaBucketList.new(self.node_id, {max_bucket_size:@@k})
 
 		known_nodes.each do |contact|
-			add_contact_to_buckets(contact)
+			@bucket_list << contact
 		
 		end
 		#run_event_machine
@@ -50,6 +50,7 @@ class KademliaNode
 	def handle_ping(contact_info)
 		puts "returning pong to ping"
 		puts "adding node #{contact_info}"
+		@bucket_list << KademliaContact.from_hash(contact_info)
 		#self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
 		return self.to_contact
 	end
@@ -82,7 +83,7 @@ class KademliaNode
 	end
 
 	def handle_find_node(key_hash)
-		sorted_contacts = (@contact_buckets.flatten).sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
+		sorted_contacts = @bucket_list.closest_contacts(key_hash) #(@bucket_list.flatten).sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
 		result = sorted_contacts.take(@@k).map {|contact| contact.to_hash}
 		puts "Returning closest nodes: `#{result}`"
 		return result
@@ -112,8 +113,7 @@ class KademliaNode
 	#Iterative node lookup.
 	def iterative_find_node(key_hash, use_find_value=false)
 
-		shortlist_index = bucket_for_hash(key_hash)
-		shortlist = @contact_buckets[shortlist_index]
+		shortlist = @bucket_list.find_bucket_for(key_hash).contacts.clone
 		closest_node, closest_distance = save_closest_contact(shortlist, key_hash)
 		already_contacted_contacts = []
 		probed_contact_amount = 0
@@ -154,7 +154,7 @@ class KademliaNode
 
 
 		#If no value, return a list of max @@k nodes that are closest to it.
-		return @contact_buckets.flatten.sort {|a,b| calc_distance(a.node_id, key_hash) <=> calc_distance(b.node_id, key_hash)}.take(@@k)
+		return bucket_list.closest_contacts(key_hash) #@bucket_list.flatten.sort {|a,b| calc_distance(a.node_id, key_hash) <=> calc_distance(b.node_id, key_hash)}.take(@@k)
 	end
 
 	def iterative_store(key, value)
@@ -230,24 +230,24 @@ class KademliaNode
 	end
 
 	#Sorts buckets, newest contacts drop to the bottom. (older contacts are preferred to talk with)
-	def sort_bucket_contacts(bucketnum)
-		@contact_buckets[bucketnum].sort! {|a,b| a.last_contact_time <=> b.last_contact_time }
-	end
+	# def sort_bucket_contacts(bucketnum)
+	# 	@bucket_list[bucketnum].sort! {|a,b| a.last_contact_time <=> b.last_contact_time }
+	# end
 
 	#adds a certain KademliaContact to the correct bucket.
-	def add_contact_to_buckets(contact)
-		index = bucket_for_hash(contact.node_id)
-		@contact_buckets[index].push contact
-	end
+	# def add_contact_to_buckets(contact)
+	# 	index = bucket_for_hash(contact.node_id)
+	# 	@bucket_list[index].push contact
+	# end
 
 	#Returns the bucket index to work on for a given hash
 	def bucket_for_hash(hash)
 		distance = calc_distance(@node_id, hash)
-			@contact_buckets.each_with_index do |bucket, j|
+			@bucket_list.each_with_index do |bucket, j|
 			if 2**j <= distance && distance < 2**(j+1) then
 				return j
 			end
 		end
-		return @contact_buckets.length-1
+		return @bucket_list.length-1
 	end
 end
