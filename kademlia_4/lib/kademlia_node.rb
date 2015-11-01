@@ -82,8 +82,8 @@ class KademliaNode
 	end
 
 	def handle_find_node(key_hash)
-		sorted_contacts = (@contact_buckets.flatten + [self]).sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
-		result = sorted_contacts.take(@@k).map {|contact| contact.to_json}
+		sorted_contacts = (@contact_buckets.flatten).sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
+		result = sorted_contacts.take(@@k).map {|contact| contact.to_hash}
 		puts "Returning closest nodes: `#{result}`"
 		return result
 	end

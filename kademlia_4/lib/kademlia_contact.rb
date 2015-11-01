@@ -33,7 +33,6 @@ class KademliaContact
 	def to_hash
 		return {
 			identifier: @identifier,
-			node_id: @node_id,
 			address: @address,
 			port: @port,
 			path: @path
@@ -45,19 +44,17 @@ class KademliaContact
 	end
 
 	def self.from_hash(hash)
-		#require 'json'
-		#json = JSON.parse(raw_json, symbolize_names: true)
+		puts hash
 		KademliaContact.new(
-				hash["identifier"],
-				hash["address"],
-				hash["port"],
-				path: hash["path"]#,
-				#json[:last_contact_time]
+				hash[:identifier],
+				hash[:address],
+				hash[:port],
+				path: hash[:path]
 			)
 	end
 
 	def self.from_json(json_string)
-		self.from_hash(JSON.parse(json_string))
+		self.from_hash(JSON.parse(json_string, symbolize_names: true))
 	end
 
 
