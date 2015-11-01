@@ -32,7 +32,7 @@ class KademliaServer
  		end
 
  		@event_thread = Thread.new do
-			@s.serve #Start server.
+			@s.serve #Start server on separate thread.
 		end
 	end
 

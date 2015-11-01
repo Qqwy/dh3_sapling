@@ -8,7 +8,17 @@ class KademliaClient
 		@address = address
 		@port = port
 		@path = path
-		@xmlrpc_client = XMLRPC::Client.new(address, path, port)
+		@xmlrpc_client = XMLRPC::Client.new(
+			address,#host
+			path, 	#path
+			port,	#port
+			nil,	#proxy host
+			nil,	#proxy port
+			nil,	#username
+			nil,	#password
+			nil,	#use_ssl
+			10		#timeout
+			)
 	end
 
 	def ping(contact)

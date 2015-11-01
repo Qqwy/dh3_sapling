@@ -17,14 +17,15 @@ class KademliaContact
 
 	def client
 		begin 
-			yield KademliaClient.new(@address, @port, path: @path)
+			@client ||= KademliaClient.new(@address, @port, path: @path) #Only initialize once. Re-use while Contact exists and program keeps running.
+			yield @client 
 
 			#This line is only executed if the connection was successfull
 			@last_contact_time = Time.now
 			@times_connected += 1
 
 		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-       		puts "Connecting to `#{@address}:#{@port} -> #{@path}` threw the following error: #{e}"
+       		$logger.warn "Connecting to `#{@address}:#{@port} -> #{@path}` threw the following error: #{e}"
        		raise Exceptions::KademliaClientConnectionError
    		end
    		return true
@@ -44,7 +45,7 @@ class KademliaContact
 	end
 
 	def self.from_hash(hash)
-		puts hash
+		$logger.debug hash
 		KademliaContact.new(
 				hash["identifier"],
 				hash["address"],

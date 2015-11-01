@@ -19,6 +19,13 @@ class KademliaNode
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
 	def initialize(identifier, known_nodes=[])
+
+		@logger = Logger.new(STDOUT)
+		@logger.level = Logger::DEBUG
+		@logger.progname = "`#{identifier}`"
+
+
+
 		@identifier = identifier.to_s
 		@node_id = $digest_class.digest @identifier
 		@data_store = {} #Value Store, keys are hash digests of the values.
@@ -48,8 +55,8 @@ class KademliaNode
 	end
 
 	def handle_ping(contact_info)
-		puts "returning pong to ping"
-		puts "adding node #{contact_info}"
+		@logger.info "returning pong to ping"
+		@logger.info "adding node #{contact_info}"
 		@bucket_list << KademliaContact.from_hash(contact_info)
 		#self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
 		return self.to_contact
@@ -60,25 +67,25 @@ class KademliaNode
 		contact.client do |c|
 			c.store(key, value)
 		end
-		puts "Value stored. Reference key: `#{key}`"
+		@logger.info "Value stored. Reference key: `#{key}`"
 	end
 
 	def handle_store(key, value)
 		#key = $digest_class.digest value
 		@data_store[key] = KademliaValue.new(key, value)
-		puts "Storing `#{key}` => `#{value}`) on server #{@identifier}"
+		@logger.info "Storing `#{key}` => `#{value}`) on server #{@identifier}"
 		return true
 	end
 
 	#Primitive operation to require contact to return up to @@k KademliaContacts closest to given key
 	def find_node(contact, key_hash)
-		puts "searching for closest node."
+		@logger.info "searching for closest node."
 		contact.client do |c| 
-			puts "Searching on #{contact.inspect}"
+			@logger.info "Searching on #{contact.inspect}"
 			hashed_contacts = c.find_node(key_hash)
-			puts "hashed contacts: #{hashed_contacts}"
+			@logger.info "hashed contacts: #{hashed_contacts}"
 			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
-			puts "result of find_node: `#{result}`"
+			@logger.info "result of find_node: `#{result}`"
 			return result
 		end
 		return []
@@ -87,7 +94,7 @@ class KademliaNode
 	def handle_find_node(key_hash)
 		sorted_contacts = @bucket_list.closest_contacts(key_hash) #(@bucket_list.flatten).sort {|a,b| self.calc_distance(key_hash,a.node_id) <=> self.calc_distance(key_hash,b.node_id)}
 		result = sorted_contacts.take(@@k).map {|contact| contact.to_hash}
-		puts "Returning closest nodes: `#{result}`"
+		@logger.info "Returning closest nodes: `#{result}`"
 		return result
 	end
 
@@ -97,20 +104,22 @@ class KademliaNode
 	def find_value(contact, key_hash)
 		result = nil
 		contact.client do |c|
+			@logger.info "Calling RPC `find_value` on #{contact.inspect}"
 			result = c.find_value(key_hash)
 		end
 		return result
 	end
 
 	def handle_find_value(key_hash)
+		@logger.info "`handle_find_value` called with key_hash=`#{key_hash}`"
 
 
 		if @data_store.include?(key_hash)
 			kvalue = @data_store[key_hash] #TODO: Timeouts
-			puts "found value on this node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
+			@logger.info "found value on this node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
 			return {found: true, key: key_hash, value: kvalue.value} 
 		else
-			puts "value for `#{key_hash}` not found. Returning closest nodes."
+			@logger.info "value for `#{key_hash}` not found. Returning closest nodes."
 			return {found: false, closest_nodes: handle_find_node(key_hash)}
 		end
 	end
@@ -120,7 +129,7 @@ class KademliaNode
 
 		shortlist = @bucket_list.find_bucket_for(key_hash).contacts.clone
 		closest_node, closest_distance = save_closest_contact(shortlist, key_hash)
-		already_contacted_contacts = []
+		already_contacted_contacts = [self.to_contact] #Never add yourself to the shortlist.
 		probed_contact_amount = 0
 
 		#TODO: Paralellism using @@alpha
@@ -128,20 +137,25 @@ class KademliaNode
 		while shortlist.any?
 			contact = shortlist.shift
 
-			if use_find_value then
-				result = find_value(contact, key_hash)
-				puts result
-				if result["found"] then
-					#Save result in closest node that did *not* return the value
-					store(closest_node, result["key"], result["value"])
+			begin
+				if use_find_value then
+					result = find_value(contact, key_hash)
+					@logger.info result
+					if result["found"] then
+						#Save result in closest node that did *not* return the value
+						store(closest_node, result["key"], result["value"])
 
-					return result
+						return result
+					else
+						new_shortlist = result["closest_nodes"].map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
+						@logger.info new_shortlist
+					end
 				else
-					new_shortlist = result["closest_nodes"].map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
-					puts new_shortlist
+					new_shortlist = find_node(contact, key_hash)
 				end
-			else
-				new_shortlist = find_node(contact, key_hash)
+			rescue Exceptions::KademliaClientConnectionError => e
+				@logger.info "Contact #{contact.identifier} did not respond to `find_*` RPC. Skip to next."
+				next #In the case of an error connecting to a contact, skip to the next one in the shortlist.
 			end
 			already_contacted_contacts << contact
 			
@@ -174,7 +188,7 @@ class KademliaNode
 		closest_contacts = iterative_find_node(key)
 		closest_contacts.each do |contact|
 			Thread.new do
-				puts "Storing to #{contact}..."
+				@logger.info "Storing to #{contact}..."
 				store(contact, key, value)
 			end
 		end
@@ -185,13 +199,13 @@ class KademliaNode
 	def iterative_find_value(key_hash)
 		if @data_store.include?(key_hash) then
 			kvalue = @data_store[key_hash] #TODO: Timeouts
-			puts "found value on local node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
+			@logger.info "found value on local node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
 			return {found: true, key: key_hash, value: kvalue.value} 
 		end
 
 
 		result = iterative_find_node(key_hash, true)
-		puts "Result of iterative_find_value: `#{result}`"
+		@logger.info "Result of iterative_find_value: `#{result}`"
 		return nil if result.empty? || result.kind_of?(Array)
 		return result["value"]
 	end
@@ -204,7 +218,10 @@ class KademliaNode
 
 	def join_network
 		# TODO: insert values of known nodes
-		iterative_find_node(@node_id)
+		close_contacts = iterative_find_node(@node_id)
+		close_contacts.each do |contact|
+			@bucket_list << contact
+		end
 	end
 
 
@@ -214,8 +231,8 @@ class KademliaNode
 		if contacts.empty? then
 			return []
 		end
-		puts "saving closest contact: `#{contacts.inspect}`"
-		#puts contacts
+		@logger.info "saving closest contact: `#{contacts.inspect}`"
+		#@logger.info contacts
 
 		closest_node = contacts.first
 		closest_distance = calc_distance(closest_node.node_id, key_hash)

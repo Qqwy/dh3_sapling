@@ -38,6 +38,13 @@ end
 $digest_class = SHA256Digest #Used for internal digest creation. Change to use a different kind of hashing type. Everything goes, as long as it supports the .digest(string) method
 #StubDigest
 
+
+require 'logger'
+
+$logger = Logger.new(STDOUT)
+$logger.level = Logger::DEBUG
+
+
 require './lib/kademlia_value' #Still needed?
 
 require './lib/exceptions/exceptions.rb'
