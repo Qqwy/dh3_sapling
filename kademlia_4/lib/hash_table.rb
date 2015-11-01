@@ -19,6 +19,10 @@ class HashTable
 		return File.binread file_path
 	end
 
+	def [](key)
+		self.fetch(key)
+	end
+
 	#Stores the value using side-stepping.
 	#TODO: Isolate re-hashing behaviour to use $digest_class properly.
 	def store(key, value)
@@ -36,6 +40,10 @@ class HashTable
 			f.write(value)
 		end
 		return used_key
+	end
+
+	def []=(key, value)
+		self.store(key, value)
 	end
 
 	def key_to_path(key)
@@ -56,6 +64,10 @@ class HashTable
 
 	def exists?(key)
 		File.exists? key_to_path(key)
+	end
+
+	def include?(key)
+		self.exists?(key)
 	end
 
 	#Should be called with a block.

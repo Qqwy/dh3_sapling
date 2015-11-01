@@ -28,7 +28,7 @@ class KademliaNode
 
 		@identifier = identifier.to_s
 		@node_id = $digest_class.digest @identifier
-		@data_store = {} #Value Store, keys are hash digests of the values.
+		@data_store = HashTable.new("data_store/#{identifier}") #Value Store, keys are hash digests of the values.
 
 		 # Buckets of contacts. 
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
@@ -196,7 +196,6 @@ class KademliaNode
 				store(contact, key, value)
 			end
 		end
-
 	end
 
 
