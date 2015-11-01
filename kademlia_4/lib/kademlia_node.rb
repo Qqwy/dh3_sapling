@@ -76,9 +76,10 @@ class KademliaNode
 
 	def handle_store(key, value)
 		#key = $digest_class.digest value
-		@data_store[key] = KademliaValue.new(key, value)
+		actual_key = @data_store.store(key, value)
 		@logger.info "Storing `#{key}` => `#{value}`) on server #{@identifier}"
-		return true
+		@logger.info "Stored under key `#{actual_key}"
+		return actual_key
 	end
 
 	#Primitive operation to require contact to return up to @@k KademliaContacts closest to given key
@@ -202,8 +203,8 @@ class KademliaNode
 	def iterative_find_value(key_hash)
 		if @data_store.include?(key_hash) then
 			kvalue = @data_store[key_hash] #TODO: Timeouts
-			@logger.info "found value on local node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
-			return {found: true, key: key_hash, value: kvalue.value} 
+			@logger.info "found value on local node. Returning `#{key_hash}` => `#{kvalue}`"
+			return {found: true, key: key_hash, value: kvalue} 
 		end
 
 

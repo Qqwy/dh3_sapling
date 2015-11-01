@@ -45,8 +45,6 @@ $logger = Logger.new(STDOUT)
 $logger.level = Logger::DEBUG
 
 
-require './lib/kademlia_value' #Still needed?
-
 require './lib/exceptions/exceptions.rb'
 
 require './lib/kademlia_node'
