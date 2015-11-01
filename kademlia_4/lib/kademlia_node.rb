@@ -36,12 +36,13 @@ class KademliaNode
 	end
 
 	def to_contact
-		KademliaContact.new(@node_id, self.server.node, self.server.port)
+		#TODO: Init server with custom location.
+		KademliaContact.new(@node_id, "localhost", self.server.port)
 	end
 
 	def ping(contact)
 		contact.client do |c|
-			c.ping(self.to_contact.to_hash)
+			c.ping(self.to_contact)
 		end
 
 	end
@@ -49,8 +50,8 @@ class KademliaNode
 	def handle_ping(contact_info)
 		puts "returning pong to ping"
 		puts "adding node #{contact_info}"
-		self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
-		return self.to_contact.to_hash
+		#self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
+		return self.to_contact
 	end
 
 	#Primitive operation to require contact to store data.

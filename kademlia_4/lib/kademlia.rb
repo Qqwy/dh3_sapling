@@ -38,12 +38,14 @@ end
 $digest_class = SHA256Digest #Used for internal digest creation. Change to use a different kind of hashing type. Everything goes, as long as it supports the .digest(string) method
 #StubDigest
 
+require './lib/kademlia_value' #Still needed?
 
 require './lib/exceptions/exceptions.rb'
 
 require './lib/kademlia_node'
 require './lib/kademlia_server'
-require './lib/kademlia_value'
+require './lib/kademlia_bucket_list'
+require './lib/kademlia_bucket'
 require './lib/kademlia_contact'
 require './lib/kademlia_client'
 

@@ -9,7 +9,7 @@ class KademliaBucket
 		@max_size = settings[:max_bucket_size]
 
 		bootstrap_contacts.each do |c|
-			self.add_contact c
+			self << c
 		end
 	end
 
@@ -24,32 +24,41 @@ class KademliaBucket
 	end
 
 	def contains?(hash)
-		return (self.start_num..self.end_num).contains?  $digest_class.to_num(hash)
+		return (self.start_num..self.end_num).include?  $digest_class.to_num(hash)
+	end
+
+	def size
+		@contacts.size
 	end
 
 	def full?
-		self.contacts.size >= @max_size
+		self.size >= @max_size
 	end
 
-	def add_contact(contact)
-		@contacts << contact
+	def <<(contact)
+		if @contacts.include? contact 
+			return false
+		else
+			@contacts << contact
+			return true
+		end
 	end
 
-	def split
+	def split!
 		lower_contacts, higher_contacts = self.contacts.partition {|c| $digest_class.to_num(c.node_id) < self.middle_num}
 
-		lower =  KademliaBucket.new(self.start_num, self.middle_num,{max_bucket_size: self.max_size}, lower_contacts)
-		higher = KademliaBucket.new(self.middle_num, self.end_num,  {max_bucket_size: self.max_size}, higher_contacts)
+		lower =  KademliaBucket.new(self.start_num, self.middle_num,{max_bucket_size: @max_size}, lower_contacts)
+		higher = KademliaBucket.new(self.middle_num, self.end_num,  {max_bucket_size: @max_size}, higher_contacts)
 
 		return [lower,higher]
 	end
 
 	# Ping all nodes in bucket. Drop non-responding ones.
-	def refresh
-		self.contacts.reverse_each.with_index do |c,i|
+	def refresh!
+		self.contacts.reverse_each.with_index do |contact,i|
 			begin
-				c.client do |client|
-					updated_contact = client.ping
+				contact.client do |client|
+					client.ping(contact)
 					#Actually updating contact's last_connect_time happens automatically in KademliaContact#client
 				end
 			rescue 	Exceptions::KademliaClientConnectionError => e
@@ -58,4 +67,5 @@ class KademliaBucket
    			end
 		end
 	end
+
 end

@@ -20,13 +20,14 @@ class KademliaContact
 			yield KademliaClient.new(@address, @port, path: @path)
 
 			#This line is only executed if the connection was successfull
-			self.last_contact_time = Time.now
-			self.times_connected += 1
+			@last_contact_time = Time.now
+			@times_connected += 1
 
 		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
        		puts "Connecting to `#{@address}:#{@port} -> #{@path}` threw the following error: #{e}"
        		raise Exceptions::KademliaClientConnectionError
    		end
+   		return true
 	end
 
 	def to_hash
@@ -39,8 +40,11 @@ class KademliaContact
 		}
 	end
 
+	def to_json
+		self.to_hash.to_json
+	end
+
 	def self.from_hash(hash)
-		puts hash
 		#require 'json'
 		#json = JSON.parse(raw_json, symbolize_names: true)
 		KademliaContact.new(
@@ -51,5 +55,18 @@ class KademliaContact
 				#json[:last_contact_time]
 			)
 	end
+
+	def self.from_json(json_string)
+		self.from_hash(JSON.parse(json_string))
+	end
+
+
+	def ==(other)
+		return false unless other.kind_of? (self.class)
+		return true if self.hash == other.hash
+
+		return self.to_hash == other.to_hash
+	end
+
 
 end

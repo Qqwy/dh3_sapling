@@ -1,13 +1,13 @@
 class KademliaBucketList
 
-	attr_reader :buckets
+	attr_reader :buckets, :node_id
 	def initialize(node_id, settings)
 		@node_id = node_id
 		@buckets = [KademliaBucket.new(0, $digest_class.hash_size, settings)]
 	end
 
 
-	def add_contact(contact)
+	def <<(contact)
 
 		# Never add yourself (or an impersonator).
 		if contact.node_id == self.node_id
@@ -19,18 +19,16 @@ class KademliaBucketList
 			raise Exceptions::BucketNotFoundError
 		end
 
-		bucket << contact
+		return unless bucket << contact
 
 		if bucket.full?
 			# TODO: Check if current node itself is contained.
 			if bucket.contains? node_id
-				bucket_index = self.buckets.lindex(bucket)
+				bucket_index = self.buckets.index(bucket)
 				self.buckets[bucket_index..bucket_index] = bucket.split! # I love this language (-:
 			else
 				bucket.refresh!
 			end
-		else
-			bucket.add_contact(contact)
 		end
 	end
 

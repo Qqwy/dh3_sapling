@@ -1,5 +1,5 @@
 require 'xmlrpc/client'
-
+require 'json'
 
 class KademliaClient
 	attr_accessor :address, :port, :path, :xmlrpc_client
@@ -11,8 +11,8 @@ class KademliaClient
 		@xmlrpc_client = XMLRPC::Client.new(address, path, port)
 	end
 
-	def ping(contact_info)
-		@xmlrpc_client.call('kademlia.ping', contact_info)
+	def ping(contact)
+		KademliaContact.from_json @xmlrpc_client.call('kademlia.ping', contact.to_json)
 	end
 
 	def store(key, value)

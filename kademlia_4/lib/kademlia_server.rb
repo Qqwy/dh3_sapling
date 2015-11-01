@@ -9,8 +9,10 @@ class KademliaServer
 		@s = XMLRPC::Server.new(@port)
 
 		@s.add_handler('kademlia.ping') do |contact_info|
-			puts "CONTACT INFO: #{contact_info}"
-			@node.handle_ping(contact_info)
+			puts "CONTACT INFO: #{contact_info.inspect}"
+			result = @node.handle_ping(KademliaContact.from_json(contact_info)).to_json
+			puts "RESULT: #{result}"
+			result
 		end
 		
 		@s.add_handler('kademlia.store') do |key, value|
