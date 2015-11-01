@@ -87,6 +87,10 @@ describe KademliaBucket do
 	end
 end
 
+describe KademliaBucketList do
+	#TODO
+end
+
 describe KademliaNode do
 	before :each do 
 		@kn = KademliaNode.new("test_identifier", [
