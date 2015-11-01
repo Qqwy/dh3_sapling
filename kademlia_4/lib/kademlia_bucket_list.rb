@@ -8,15 +8,26 @@ class KademliaBucketList
 
 
 	def add_contact(contact)
-		contact_id = contact.node_id
-		bucket = self.find_bucket_for(contact_id)
+
+		# Never add yourself (or an impersonator).
+		if contact.node_id == self.node_id
+			return false 
+		end
+
+		bucket = self.find_bucket_for(contact.node_id)
+		if bucket.nil?
+			raise Exceptions::BucketNotFoundError
+		end
+
+		bucket << contact
+
 		if bucket.full?
 			# TODO: Check if current node itself is contained.
 			if bucket.contains? node_id
 				bucket_index = self.buckets.lindex(bucket)
 				self.buckets[bucket_index..bucket_index] = bucket.split! # I love this language (-:
 			else
-
+				bucket.refresh!
 			end
 		else
 			bucket.add_contact(contact)
@@ -30,4 +41,6 @@ class KademliaBucketList
 			end
 		end
 	end
+
+
 end

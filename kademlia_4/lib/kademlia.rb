@@ -29,7 +29,7 @@ class SHA256Digest
 		hash_as_str.to_i(16)
 	end
 
-	# Also known as `B` in the Kademlia specification. The key-space size.
+	# Also known as `B` in the Kademlia specification. The number of unique keys that can be constructed using this hashing function.
 	def self.hash_size
 		2**256
 	end
@@ -39,6 +39,7 @@ $digest_class = SHA256Digest #Used for internal digest creation. Change to use a
 #StubDigest
 
 
+require './lib/exceptions/exceptions.rb'
 
 require './lib/kademlia_node'
 require './lib/kademlia_server'

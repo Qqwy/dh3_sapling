@@ -9,6 +9,7 @@ class KademliaServer
 		@s = XMLRPC::Server.new(@port)
 
 		@s.add_handler('kademlia.ping') do |contact_info|
+			puts "CONTACT INFO: #{contact_info}"
 			@node.handle_ping(contact_info)
 		end
 		

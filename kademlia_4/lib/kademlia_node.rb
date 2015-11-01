@@ -41,7 +41,7 @@ class KademliaNode
 
 	def ping(contact)
 		contact.client do |c|
-			c.ping(self.to_contact)
+			c.ping(self.to_contact.to_hash)
 		end
 
 	end
@@ -49,8 +49,8 @@ class KademliaNode
 	def handle_ping(contact_info)
 		puts "returning pong to ping"
 		puts "adding node #{contact_info}"
-		self.add_contact_to_buckets(contact_info)
-		return "pong"
+		self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
+		return self.to_contact.to_hash
 	end
 
 	#Primitive operation to require contact to store data.

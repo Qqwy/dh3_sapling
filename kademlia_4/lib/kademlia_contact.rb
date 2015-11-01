@@ -3,34 +3,39 @@
 
 class KademliaContact
 
-	attr_accessor :identifier, :node_id, :ip, :port, :path, :last_contact_time
+	attr_reader  :identifier, :node_id, :ip, :port, :path,:last_contact_time, :times_connected
 
 	def initialize(identifier, address, port, path:"/", contact_time: Time.now())
 		@identifier = identifier.to_s
 		@node_id = $digest_class.digest @identifier
 		@address = address
 		@port = port
-		@path = path
+		@path = path || "/"
 		@last_contact_time = contact_time #used to sort contacts and see which ones are still functioning.
+		@times_connected = 0
 	end
 
 	def client
 		begin 
 			yield KademliaClient.new(@address, @port, path: @path)
-		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
-       Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+
+			#This line is only executed if the connection was successfull
+			self.last_contact_time = Time.now
+			self.times_connected += 1
+
+		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
        		puts "Connecting to `#{@address}:#{@port} -> #{@path}` threw the following error: #{e}"
+       		raise Exceptions::KademliaClientConnectionError
    		end
 	end
 
-	def to_json
+	def to_hash
 		return {
 			identifier: @identifier,
 			node_id: @node_id,
 			address: @address,
 			port: @port,
-			path: @path#,
-			#last_contact_time: @last_contact_time
+			path: @path
 		}
 	end
 
