@@ -1,0 +1,27 @@
+
+Kademlia:
+	-kademlia_4 contains most up-to-date version.
+
+	TODO:
+		-HashTable (storing on file system)
+			-> Bloom filter?
+		-Refresh values that are older than tRefresh time, using a cron-like method.
+		-Comparing current (generic) XMLRPC library with something like Rack-RPC.
+			-> Can rack app be kept running across multiple requests?
+		-Persist contact information.
+		-Node ID generation using ECDSA. (+ storing this information in a file somewhere to persist?)
+		-ensure find_node works as wanted (returning less than `k` nodes okay or not?)
+		-Side-step value storage for occupied keys.
+		-Test running on multiple systems. (Local there seems to be a problem with XMLRPC + soft-threads that makes Client<->Server connection sometimes deadlock -> timeout)
+
+
+
+
+Distributed Hash Tree (DH3):
+	TODO:
+		-Connect to Distributed Hash Table implemented above.
+
+		-implement higher-level functionality + example application.
+
+		-Write new version of paper
+
