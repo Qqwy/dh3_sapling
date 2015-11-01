@@ -18,7 +18,7 @@ class KademliaNode
 	attr_accessor :node_id, :identifier, :data_store, :bucket_list, :server
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
-	def initialize(identifier, known_nodes=[])
+	def initialize(identifier, host, port, path="/", known_nodes=[])
 
 		@logger = Logger.new(STDOUT)
 		@logger.level = Logger::DEBUG
@@ -38,7 +38,11 @@ class KademliaNode
 			@bucket_list << contact
 		
 		end
-		#run_event_machine
+
+		@host = host
+		@port = port
+		@path = path
+		@server = KademliaServer.new(self, @port)
 
 	end
 
