@@ -12,7 +12,7 @@ class KademliaClient
 	end
 
 	def ping(contact)
-		KademliaContact.from_json @xmlrpc_client.call('kademlia.ping', contact.to_json)
+		KademliaContact.from_hash @xmlrpc_client.call('kademlia.ping', contact.to_hash)
 	end
 
 	def store(key, value)
@@ -24,7 +24,7 @@ class KademliaClient
 	end
 
 	def find_value(key_hash)
-		@xmlrpc_client.call('kademlia.find_value', key_hash)
+		result = @xmlrpc_client.call('kademlia.find_value', key_hash)
 	end
  
 

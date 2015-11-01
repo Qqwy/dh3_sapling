@@ -37,7 +37,7 @@ class KademliaNode
 
 	def to_contact
 		#TODO: Init server with custom location.
-		KademliaContact.new(@node_id, "localhost", self.server.port)
+		KademliaContact.new(@node_id, "127.0.0.1", self.server.port)
 	end
 
 	def ping(contact)
@@ -74,7 +74,9 @@ class KademliaNode
 	def find_node(contact, key_hash)
 		puts "searching for closest node."
 		contact.client do |c| 
+			puts "Searching on #{contact.inspect}"
 			hashed_contacts = c.find_node(key_hash)
+			puts "hashed contacts: #{hashed_contacts}"
 			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
 			puts "result of find_node: `#{result}`"
 			return result
@@ -93,21 +95,24 @@ class KademliaNode
 	# => the value for the specific key_hash, if he has it.
 	# => if not, return the result of `#find_node` (closest contacts that might know it)
 	def find_value(contact, key_hash)
+		result = nil
 		contact.client do |c|
-			c.find_value(key_hash)
+			result = c.find_value(key_hash)
 		end
+		return result
 	end
 
 	def handle_find_value(key_hash)
 
 
-		if @data_store.include?(key_hash) then
+		if @data_store.include?(key_hash)
 			kvalue = @data_store[key_hash] #TODO: Timeouts
 			puts "found value on this node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
 			return {found: true, key: key_hash, value: kvalue.value} 
+		else
+			puts "value for `#{key_hash}` not found. Returning closest nodes."
+			return {found: false, closest_nodes: handle_find_node(key_hash)}
 		end
-		puts "value for `#{key_hash}` not found. Returning closest nodes."
-		return {found: false, closest_nodes: handle_find_node(key_hash)}
 	end
 
 	#Iterative node lookup.
@@ -120,7 +125,9 @@ class KademliaNode
 
 		#TODO: Paralellism using @@alpha
 
-		shortlist.each do |contact|
+		while shortlist.any?
+			contact = shortlist.shift
+
 			if use_find_value then
 				result = find_value(contact, key_hash)
 				puts result
@@ -137,7 +144,10 @@ class KademliaNode
 				new_shortlist = find_node(contact, key_hash)
 			end
 			already_contacted_contacts << contact
-			shortlist += new_shortlist
+			
+			shortlist += new_shortlist #add all new contacts
+
+			shortlist -= already_contacted_contacts #remove all contacts that have been contacted before.
 
 			new_closest_node, new_closest_distance = save_closest_contact(new_shortlist, key_hash)
 			if new_closest_distance < closest_distance then

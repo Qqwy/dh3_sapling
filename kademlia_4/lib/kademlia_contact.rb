@@ -32,10 +32,10 @@ class KademliaContact
 
 	def to_hash
 		return {
-			identifier: @identifier,
-			address: @address,
-			port: @port,
-			path: @path
+			"identifier" => @identifier,
+			"address" => @address,
+			"port" => @port,
+			"path" => @path
 		}
 	end
 
@@ -46,15 +46,15 @@ class KademliaContact
 	def self.from_hash(hash)
 		puts hash
 		KademliaContact.new(
-				hash[:identifier],
-				hash[:address],
-				hash[:port],
-				path: hash[:path]
+				hash["identifier"],
+				hash["address"],
+				hash["port"],
+				path: hash["path"]
 			)
 	end
 
 	def self.from_json(json_string)
-		self.from_hash(JSON.parse(json_string, symbolize_names: true))
+		self.from_hash(JSON.parse(json_string))
 	end
 
 

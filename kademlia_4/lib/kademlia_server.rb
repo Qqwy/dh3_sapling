@@ -10,7 +10,7 @@ class KademliaServer
 
 		@s.add_handler('kademlia.ping') do |contact_info|
 			puts "CONTACT INFO: #{contact_info.inspect}"
-			result = @node.handle_ping(KademliaContact.from_json(contact_info)).to_json
+			result = @node.handle_ping(KademliaContact.from_hash(contact_info)).to_hash
 			puts "RESULT: #{result}"
 			result
 		end
