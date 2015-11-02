@@ -49,7 +49,7 @@ $logger.level = Logger::DEBUG
 require './lib/exceptions/exceptions.rb'
 
 require './lib/kademlia_node'
-require './lib/kademlia_server'
+# require './lib/kademlia_server'
 require './lib/hash_table'
 require './lib/kademlia_bucket_list'
 require './lib/kademlia_bucket'

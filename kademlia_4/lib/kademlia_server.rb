@@ -30,10 +30,10 @@ class KademliaServer
 			@node.handle_find_value(key_hash)
 		end
 
-		rpc 'kademlia.ping' => :kademlia_ping
-		rpc 'kademlia.store' => :kademlia_store
-		rpc 'kademlia.find_node' => :kademlia_find_node
-		rpc 'kademlia.find_value' => :kademlia_find_value
+		# rpc 'kademlia.ping' => :kademlia_ping
+		# rpc 'kademlia.store' => :kademlia_store
+		# rpc 'kademlia.find_node' => :kademlia_find_node
+		# rpc 'kademlia.find_value' => :kademlia_find_value
 		
 		# @s.set_default_handler do |name, *args|
 		# 	raise XMLRPC::FaultException.new(-99, "Method #{name} missing,  or wrong number of parameters!")
