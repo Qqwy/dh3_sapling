@@ -1,46 +1,60 @@
-require 'xmlrpc/server'
+#require 'xmlrpc/server'
+require 'rack/rpc'
 
-class KademliaServer
+
+#TODO: How to init as Rack RPC server? Config.ru -ish?
+class KademliaServer < Rack::RPC::Server
 	attr_accessor :node, :port, :s
 	def initialize(node, port)
 		@node = node
 		node.server = self
 		@port = port
-		@s = XMLRPC::Server.new(@port)
+		#@s = XMLRPC::Server.new(@port)
 
-		@s.add_handler('kademlia.ping') do |contactor_info|
+
+
+	end
+
+		def kademlia_ping #@s.add_handler('kademlia.ping') do |contactor_info|
 			@node.add_or_update_contact contactor_info
 			@node.handle_ping(KademliaContact.from_hash(contactor_info)).to_hash
 		end
 		
-		@s.add_handler('kademlia.store') do |contactor_info, key, value|
+		def kademlia_store #@s.add_handler('kademlia.store') do |contactor_info, key, value|
 			@node.add_or_update_contact contactor_info
 			@node.handle_store(key, value)
 		end
 		
-		@s.add_handler('kademlia.find_node') do |contactor_info, key_hash| 
+		def kademlia_find_node #@s.add_handler('kademlia.find_node') do |contactor_info, key_hash| 
 			@node.add_or_update_contact contactor_info
 			@node.handle_find_node(key_hash)
 		end
 		
-		@s.add_handler('kademlia.find_value') do |contactor_info, key_hash| 
+		def kademlia_find_value #@s.add_handler('kademlia.find_value') do |contactor_info, key_hash| 
 			@node.add_or_update_contact contactor_info
 			@node.handle_find_value(key_hash)
 		end
 
-		@s.set_default_handler do |name, *args|
-			raise XMLRPC::FaultException.new(-99, "Method #{name} missing,  or wrong number of parameters!")
- 		end
+		# @s.set_default_handler do |name, *args|
+		# 	raise XMLRPC::FaultException.new(-99, "Method #{name} missing,  or wrong number of parameters!")
+ 	# 	end
 
- 		@event_thread = Thread.new do
-			@s.serve #Start server on separate thread.
-		end
-	end
+ 	# 	@event_thread = Thread.new do
+		# 	@s.serve #Start server on separate thread.
+		# end
+
+		rpc 'kademlia.ping' => :kademlia_ping
+		rpc 'kademlia.store' => :kademlia_store
+		rpc 'kademlia.find_node' => :kademlia_find_node
+		rpc 'kademlia.find_value' => :kademlia_find_value
+	#end
 
 	def stop
 		Thread.kill(@event_thread)
 	end
 end
+
+
 
 #ks = KademliaServer.new({},8080)
 
