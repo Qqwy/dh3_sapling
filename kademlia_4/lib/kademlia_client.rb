@@ -21,20 +21,20 @@ class KademliaClient
 			)
 	end
 
-	def ping(contact)
-		KademliaContact.from_hash @xmlrpc_client.call('kademlia.ping', contact.to_hash)
+	def ping(contactor_info)
+		KademliaContact.from_hash @xmlrpc_client.call('kademlia.ping', contactor_info.to_hash)
 	end
 
-	def store(key, value)
-		@xmlrpc_client.call('kademlia.store',key, value)
+	def store(contactor_info, key, value)
+		@xmlrpc_client.call('kademlia.store', contactor_info.to_hash, key, value)
 	end
 
-	def find_node(key_hash)
-		@xmlrpc_client.call('kademlia.find_node', key_hash)
+	def find_node(contactor_info, key_hash)
+		@xmlrpc_client.call('kademlia.find_node', contactor_info.to_hash, key_hash)
 	end
 
-	def find_value(key_hash)
-		result = @xmlrpc_client.call('kademlia.find_value', key_hash)
+	def find_value(contactor_info, key_hash)
+		result = @xmlrpc_client.call('kademlia.find_value', contactor_info.to_hash, key_hash)
 	end
  
 

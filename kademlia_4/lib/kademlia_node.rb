@@ -83,7 +83,7 @@ class KademliaNode
 	#Primitive operation to require contact to store data.
 	def store(contact, key, value)
 		contact.client do |c|
-			c.store(key, value)
+			c.store(self.to_contact, key, value)
 		end
 		@logger.info "Value stored. Reference key: `#{key}`"
 	end
@@ -101,7 +101,7 @@ class KademliaNode
 		@logger.info "searching for closest node."
 		contact.client do |c| 
 			@logger.info "Searching on #{contact.inspect}"
-			hashed_contacts = c.find_node(key_hash)
+			hashed_contacts = c.find_node(self.to_contact, key_hash)
 			@logger.info "hashed contacts: #{hashed_contacts}"
 			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
 			@logger.info "result of find_node: `#{result}`"
@@ -124,7 +124,7 @@ class KademliaNode
 		result = nil
 		contact.client do |c|
 			@logger.info "Calling RPC `find_value` on #{contact.inspect}"
-			result = c.find_value(key_hash)
+			result = c.find_value(self.to_contact, key_hash)
 		end
 		return result
 	end
@@ -270,6 +270,11 @@ class KademliaNode
 			end
 		end
 		return [closest_node, closest_distance]
+	end
+
+	def add_or_update_contact(contact_info)
+		contact = KademliaContact.from_hash(contact_info)
+		self.bucket_list.add_or_update_contact(contact)
 	end
 
 	#calculates the distance between two hashes: This can both be used between two nodes, a node and a to-be-stored-or-read value or two values.

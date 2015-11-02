@@ -34,6 +34,16 @@ class KademliaBucketList
 		end
 	end
 
+	def add_or_update_contact(contact)
+		if index = self.contacts.index(contact) 
+			$logger.info "Updating Contact: #{contact.inspect}"
+			self.contacts[index].update_contact_time!
+		else
+			$logger.info "Storing new Contact: #{contact.inspect}"
+			self << contact
+		end
+	end
+
 	def find_bucket_for(hash)
 		self.buckets.each do |bucket|
 			if bucket.contains? hash
@@ -45,6 +55,10 @@ class KademliaBucketList
 	#TODO: Find out if necessary to grab other buckets if not enough contacts?
 	def closest_contacts(hash)
 		return find_bucket_for(hash).contacts
+	end
+
+	def contacts
+		self.buckets.map(&:contacts).flatten
 	end
 
 

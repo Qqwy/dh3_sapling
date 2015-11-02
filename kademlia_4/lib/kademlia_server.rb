@@ -8,22 +8,23 @@ class KademliaServer
 		@port = port
 		@s = XMLRPC::Server.new(@port)
 
-		@s.add_handler('kademlia.ping') do |contact_info|
-			puts "CONTACT INFO: #{contact_info.inspect}"
-			result = @node.handle_ping(KademliaContact.from_hash(contact_info)).to_hash
-			puts "RESULT: #{result}"
-			result
+		@s.add_handler('kademlia.ping') do |contactor_info|
+			@node.add_or_update_contact contactor_info
+			@node.handle_ping(KademliaContact.from_hash(contactor_info)).to_hash
 		end
 		
-		@s.add_handler('kademlia.store') do |key, value|
+		@s.add_handler('kademlia.store') do |contactor_info, key, value|
+			@node.add_or_update_contact contactor_info
 			@node.handle_store(key, value)
 		end
 		
-		@s.add_handler('kademlia.find_node') do |key_hash| 
+		@s.add_handler('kademlia.find_node') do |contactor_info, key_hash| 
+			@node.add_or_update_contact contactor_info
 			@node.handle_find_node(key_hash)
 		end
 		
-		@s.add_handler('kademlia.find_value') do |key_hash| 
+		@s.add_handler('kademlia.find_value') do |contactor_info, key_hash| 
+			@node.add_or_update_contact contactor_info
 			@node.handle_find_value(key_hash)
 		end
 

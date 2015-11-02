@@ -5,7 +5,7 @@ class KademliaContact
 
 	attr_reader  :identifier, :node_id, :ip, :port, :path,:last_contact_time, :times_connected
 
-	def initialize(identifier, address, port, path:"/", contact_time: Time.now())
+	def initialize(identifier, address, port, path:"/", contact_time: Time.now)
 		@identifier = identifier.to_s
 		@node_id = $digest_class.digest @identifier
 		@address = address
@@ -29,6 +29,10 @@ class KademliaContact
        		raise Exceptions::KademliaClientConnectionError
    		end
    		return true
+	end
+
+	def update_contact_time!
+		@last_contact_time = Time.now
 	end
 
 	def to_hash
