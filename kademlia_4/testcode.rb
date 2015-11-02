@@ -6,7 +6,7 @@ $kc2 = KademliaContact.new("contact2", "127.0.0.1", "4502")
 $kc3 = KademliaContact.new("contact3", "127.0.0.1", "4503")
 
 
-$kn1 = KademliaNode.new("contact1", "127.0.0.1", "4501", "/", Pathname.new("./data_store/config/config1.yml"), [$kc2])
+$kn1 = KademliaNode.new(Pathname.new("./data_store/config/config1.yml"), [$kc2])
 #$kn2 = KademliaNode.new("contact2", "127.0.0.1", "4502", "/", [$kc1, $kc3])
 #$kn3 = KademliaNode.new("contact3", "127.0.0.1", "4503", "/", [$kc1, $kc2])
 

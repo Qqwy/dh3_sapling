@@ -16,9 +16,10 @@ class KademliaNode
 
 
 	attr_accessor :node_id, :identifier, :data_store, :bucket_list, :server
+	attr_reader :config
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
-	def initialize(identifier, host, port, path="/", config_location, known_nodes=[])
+	def initialize(config_location, known_nodes=[])
 
 		@logger = Logger.new(STDOUT)
 		@logger.level = Logger::DEBUG
@@ -28,9 +29,12 @@ class KademliaNode
 		
 		self.read_config(config_location)
 
+		@address = @config[:address]
+		@public_key = @config[:public_key]
+		@signature = @config[:signature]
+		@node_id = @config[:node_id]
 
-		@identifier = identifier.to_s
-		@node_id = $digest_class.digest @identifier
+
 		@data_store = HashTable.new("data_store/#{identifier}") #Value Store, keys are hash digests of the values.
 
 		# Refreshes contents of the datastore by re-broadcasting values every tRefresh seconds.
@@ -56,10 +60,7 @@ class KademliaNode
 		
 		end
 
-		@host = host
-		@port = port
-		@path = path
-		@server = KademliaServer.new(self, @port)
+		@server = KademliaServer.new(self, @address)
 
 	end
 
@@ -68,20 +69,23 @@ class KademliaNode
 		@config_location = config_location
 		config = YAML.load_file(config_location) || {}
 
-		if config[:public_key].nil? && config[:signature].nil? && config[:single_use_key].nil? && config[:node_id].nil?
+		puts config
+
+		if config[:public_key].nil? && config[:signature].nil? &&  config[:node_id].nil?
 			create_node_id(config)
-		elsif config[:public_key].nil? || config[:signature].nil? || config[:single_use_key].nil? || config[:node_id].nil?
+		elsif config[:public_key].nil? || config[:signature].nil? || config[:node_id].nil?
 			#TODO: check signature.
-			throw KademliaCorruptedConfigError
-		end 
+			throw Exceptions::KademliaCorruptedConfigError
+		end
+		@config = config 
 	end
 
 	def create_node_id(config)
 		if !config[:private_key].nil?
-			throw KademliaCorruptedConfigError
+			throw Exceptions::KademliaCorruptedConfigError
 		end
 		if config[:address].nil?
-			throw KademliaNoAddressInConfigError
+			throw Exceptions::KademliaNoAddressInConfigError
 		end
 
 		require 'ecdsa'
@@ -101,8 +105,8 @@ class KademliaNode
 		require 'digest/sha2'
 		message = config[:address]
 		digest = Digest::SHA2.digest(message)
-		signature = nil
-		while signature.nil?
+		signature_point = nil
+		while signature_point.nil?
 		  single_use_key = 1 + SecureRandom.random_number(group.order - 1)
 		  signature_point = ECDSA.sign(group, private_key, digest, single_use_key)
 		end
@@ -110,7 +114,7 @@ class KademliaNode
 		puts '  r: %#x' % signature_point.r
 		puts '  s: %#x' % signature_point.s
 
-		signature= ECDSA::Format::SignatureDerString.encode(signature_point)
+		signature = ECDSA::Format::SignatureDerString.encode(signature_point)
 
 		node_id = $digest_class.digest(signature)
 
@@ -129,12 +133,12 @@ class KademliaNode
 		public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
 		digest = Digest::SHA2.digest(address)
 		signature_point = ECDSA::Format::SignatureDerString.decode(signature)
-		ECDSA.valid_signature?(public_key_point, digest, signature) && node_id == $digest_class.digest(signature)
+		ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == $digest_class.digest(signature)
 	end
 
 	def to_contact
 		#TODO: Init server with custom location.
-		KademliaContact.new(@node_id, "127.0.0.1", self.server.port)
+		KademliaContact.new(@node_id, @address, @public_key, @signature)
 	end
 
 	def ping(contact)
@@ -346,7 +350,11 @@ class KademliaNode
 
 	def add_or_update_contact(contact_info)
 		contact = KademliaContact.from_hash(contact_info)
-		self.bucket_list.add_or_update_contact(contact)
+		if valid_node_id?(contact.address, contact.public_key, contact.signature, contact.node_id)
+			self.bucket_list.add_or_update_contact(contact)
+		else
+			logger.warn "Rejected adding/updating contact `#{contact.inspect}` because of invalid node_id."
+		end
 	end
 
 	#calculates the distance between two hashes: This can both be used between two nodes, a node and a to-be-stored-or-read value or two values.

@@ -1,12 +1,14 @@
 require 'xmlrpc/server'
+require 'uri'
 
 class KademliaServer
-	attr_accessor :node, :port, :s
-	def initialize(node, port)
+	attr_accessor :node, :address, :s
+	def initialize(node, address)
 		@node = node
 		node.server = self
-		@port = port
-		@s = XMLRPC::Server.new(@port)
+		@address = address
+		uri = URI(@address)
+		@s = XMLRPC::Server.new(uri.port)
 
 		@s.add_handler('kademlia.ping') do |contactor_info|
 			@node.add_or_update_contact contactor_info
