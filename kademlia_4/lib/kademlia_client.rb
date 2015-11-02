@@ -22,7 +22,7 @@ class KademliaClient
 	end
 
 	def ping(contactor_info)
-		KademliaContact.from_hash @xmlrpc_client.call('kademlia.ping', contactor_info.to_hash)
+		@xmlrpc_client.call('kademlia.ping', contactor_info.to_hash)
 	end
 
 	def store(contactor_info, key, value)

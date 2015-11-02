@@ -15,15 +15,13 @@ class KademliaNode
 
 
 
-	attr_accessor :node_id, :identifier, :data_store, :bucket_list, :server
+	attr_accessor :node_id, :data_store, :bucket_list, :server
 	attr_reader :config
 
-	#identifier is used to determine the node ID. Should be a quasi-random number.
-	def initialize(config_location, known_nodes=[])
+	def initialize(config_location, known_addresses=[])
 
 		@logger = Logger.new(STDOUT)
 		@logger.level = Logger::DEBUG
-		@logger.progname = "`#{identifier}`"
 
 
 		
@@ -33,9 +31,10 @@ class KademliaNode
 		@public_key = @config[:public_key]
 		@signature = @config[:signature]
 		@node_id = @config[:node_id]
+		@logger.progname = "`#{self.node_id}`"
 
 
-		@data_store = HashTable.new("data_store/#{identifier}") #Value Store, keys are hash digests of the values.
+		@data_store = HashTable.new("data_store/#{self.node_id}") #Value Store, keys are hash digests of the values.
 
 		# Refreshes contents of the datastore by re-broadcasting values every tRefresh seconds.
 		@scheduler = Thread.new do
@@ -55,12 +54,14 @@ class KademliaNode
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
 		@bucket_list = KademliaBucketList.new(self.node_id, {max_bucket_size:@@k})
 
-		known_nodes.each do |contact|
-			@bucket_list << contact
-		
+		known_addresses.each do |address|
+			self.ping KademliaContact.new("", address)	
 		end
 
 		@server = KademliaServer.new(self, @address)
+
+		#Besides the known_addresses above, find out nodes that are close in the XOR-metric distance, and add them.
+		self.join_network
 
 	end
 
@@ -142,17 +143,23 @@ class KademliaNode
 	end
 
 	def ping(contact)
-		contact.client do |c|
-			c.ping(self.to_contact)
+		begin
+			contact.client do |c|
+				updated_contact_info = c.ping(self.to_contact)
+				add_or_update_contact(updated_contact_info)
+			end
+		rescue Exceptions::KademliaClientConnectionError
+			@logger.info "Disregard contact #{contact.name} because of a Connection Error"
 		end
 
 	end
 
 	def handle_ping(contact_info)
 		@logger.info "returning pong to ping"
-		@logger.info "adding node #{contact_info}"
-		@bucket_list << KademliaContact.from_hash(contact_info)
+		@logger.info "adding node #{contact_info.inspect}"
+		#@bucket_list << KademliaContact.from_hash(contact_info) #Happens automatically now
 		#self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
+		@logger.info "Returning: #{self.to_contact.to_hash}"
 		return self.to_contact
 	end
 
@@ -167,7 +174,7 @@ class KademliaNode
 	def handle_store(key, value)
 		#key = $digest_class.digest value
 		actual_key = @data_store.store(key, value)
-		@logger.info "Storing `#{key}` => `#{value}`) on server #{@identifier}"
+		@logger.info "Storing `#{key}` => `#{value}`) on server #{self.node_id}"
 		@logger.info "Stored under key `#{actual_key}"
 		return actual_key
 	end
@@ -176,7 +183,7 @@ class KademliaNode
 	def find_node(contact, key_hash)
 		@logger.info "searching for closest node."
 		contact.client do |c| 
-			@logger.info "Searching on #{contact.inspect}"
+			@logger.info "Searching on #{contact.name}"
 			hashed_contacts = c.find_node(self.to_contact, key_hash)
 			@logger.info "hashed contacts: #{hashed_contacts}"
 			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
@@ -199,7 +206,7 @@ class KademliaNode
 	def find_value(contact, key_hash)
 		result = nil
 		contact.client do |c|
-			@logger.info "Calling RPC `find_value` on #{contact.inspect}"
+			@logger.info "Calling RPC `find_value` on #{contact.name}"
 			result = c.find_value(self.to_contact, key_hash)
 		end
 		return result
@@ -252,7 +259,7 @@ class KademliaNode
 					new_shortlist = find_node(contact, key_hash)
 				end
 			rescue Exceptions::KademliaClientConnectionError => e
-				@logger.info "Contact #{contact.identifier} did not respond to `find_*` RPC. Skip to next."
+				@logger.info "Contact #{contact.name} did not respond to `find_*` RPC. Skip to next."
 				next #In the case of an error connecting to a contact, skip to the next one in the shortlist.
 			end
 			already_contacted_contacts << contact
@@ -286,7 +293,7 @@ class KademliaNode
 		closest_contacts = iterative_find_node(key)
 		closest_contacts.each do |contact|
 			Thread.new do
-				@logger.info "Storing to #{contact}..."
+				@logger.info "Storing to #{contact.name}..."
 				store(contact, key, value)
 			end
 		end
@@ -332,7 +339,7 @@ class KademliaNode
 			return []
 		end
 		contacts -= [self.to_contact]
-		@logger.info "saving closest contacts: `#{contacts.inspect}`"
+		@logger.info "saving closest contacts: `#{contacts.map(&:name)}`"
 		#@logger.info contacts
 
 
