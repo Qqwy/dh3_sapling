@@ -2,6 +2,9 @@
 Kademlia:
 	-kademlia_4 contains most up-to-date version.
 
+	DONE:
+		-Store contact info on connection made.
+
 	TODO:
 		-HashTable (storing on file system)
 			-> Bloom filter?
@@ -12,6 +15,7 @@ Kademlia:
 		-Node ID generation using ECDSA. (+ storing this information in a file somewhere to persist?)
 		-ensure find_node works as wanted (returning less than `k` nodes okay or not?)
 		-Side-step value storage for occupied keys.
+		-Debug scheduler. Maybe use Clockwork or similar?
 		-Test running on multiple systems. (Local there seems to be a problem with XMLRPC + soft-threads that makes Client<->Server connection sometimes deadlock -> timeout)
 
 
