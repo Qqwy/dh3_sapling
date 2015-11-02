@@ -8,11 +8,13 @@ Kademlia:
 		-Refresh values that are older than tRefresh time, using a cron-like method.
 		-Node ID generation using ECDSA. (+ storing this information in a config file. single_use_key is on purpose not stored; losing the signature -> losing the node ID)
 		-Side-step value storage for occupied keys.
+		-Implement as Rack-app, using rack-rpc
+		-Can be RPC-called from endpoints (non-nodes) now as well.
 
 	TODO:
+		-Error handling
 		-Look for possibilities of better multithreading.
-		-Comparing current (generic) XMLRPC library with something like Rack-RPC.
-			-> Can rack app be kept running across multiple requests?
+		
 		-Persist contact information.
 		-ensure find_node works as wanted (returning less than `k` nodes okay or not?)
 		-Test running on multiple systems. (Local there seems to be a problem with XMLRPC + soft-threads that makes Client<->Server connection sometimes deadlock -> timeout)

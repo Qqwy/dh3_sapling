@@ -291,7 +291,7 @@ class KademliaNode < Rack::RPC::Server
 
 	def iterative_store(key, value)
 		#key = $digest_class.digest value
-		self.handle_store(key, value) #Also store locally, as there is a high possibility that it will be re-requested by uploader.
+		result_key = self.handle_store(key, value) #Also store locally, as there is a high possibility that it will be re-requested by uploader.
 		
 		closest_contacts = iterative_find_node(key)
 		closest_contacts.each do |contact|
@@ -300,6 +300,7 @@ class KademliaNode < Rack::RPC::Server
 				store(contact, key, value)
 			end
 		end
+		return {"stored"=> true, "key"=> result_key, "value"=> value}
 	end
 
 
@@ -418,7 +419,7 @@ class KademliaNode < Rack::RPC::Server
 		self.handle_find_node(key_hash)
 	end
 
-	def ep_find_node(key_hash)
+	def ep_find_close_nodes(key_hash)
 		self.iterative_find_node(key_hash).map(&:to_hash)
 	end
 	
@@ -439,7 +440,7 @@ class KademliaNode < Rack::RPC::Server
 
 	rpc 'ep_ping' => :ep_ping
 	rpc 'ep_store' => :ep_store
-	rpc 'ep_find_nodes' => :ep_find_node
+	rpc 'ep_find_close_nodes' => :ep_find_close_nodes
 	rpc 'ep_find_value' => :ep_find_value
 
 	
