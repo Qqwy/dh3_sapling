@@ -18,12 +18,15 @@ class KademliaNode
 	attr_accessor :node_id, :identifier, :data_store, :bucket_list, :server
 
 	#identifier is used to determine the node ID. Should be a quasi-random number.
-	def initialize(identifier, host, port, path="/", known_nodes=[])
+	def initialize(identifier, host, port, path="/", config_location, known_nodes=[])
 
 		@logger = Logger.new(STDOUT)
 		@logger.level = Logger::DEBUG
 		@logger.progname = "`#{identifier}`"
 
+
+		
+		self.read_config(config_location)
 
 
 		@identifier = identifier.to_s
@@ -58,6 +61,75 @@ class KademliaNode
 		@path = path
 		@server = KademliaServer.new(self, @port)
 
+	end
+
+	def read_config(config_location)
+		require 'yaml'
+		@config_location = config_location
+		config = YAML.load_file(config_location) || {}
+
+		if config[:public_key].nil? && config[:signature].nil? && config[:single_use_key].nil? && config[:node_id].nil?
+			create_node_id(config)
+		elsif config[:public_key].nil? || config[:signature].nil? || config[:single_use_key].nil? || config[:node_id].nil?
+			#TODO: check signature.
+			throw KademliaCorruptedConfigError
+		end 
+	end
+
+	def create_node_id(config)
+		if !config[:private_key].nil?
+			throw KademliaCorruptedConfigError
+		end
+		if config[:address].nil?
+			throw KademliaNoAddressInConfigError
+		end
+
+		require 'ecdsa'
+		require 'securerandom'
+		group = ECDSA::Group::Secp256k1
+		private_key = 1 + SecureRandom.random_number(group.order - 1)
+		puts 'private key: %#x' % private_key
+
+		public_key_point = group.generator.multiply_by_scalar(private_key)
+		puts 'public key: '
+		puts '  x: %#x' % public_key_point.x
+		puts '  y: %#x' % public_key_point.y
+
+		public_key = ECDSA::Format::PointOctetString.encode(public_key_point, compression: true)
+
+
+		require 'digest/sha2'
+		message = config[:address]
+		digest = Digest::SHA2.digest(message)
+		signature = nil
+		while signature.nil?
+		  single_use_key = 1 + SecureRandom.random_number(group.order - 1)
+		  signature_point = ECDSA.sign(group, private_key, digest, single_use_key)
+		end
+		puts 'signature: '
+		puts '  r: %#x' % signature_point.r
+		puts '  s: %#x' % signature_point.s
+
+		signature= ECDSA::Format::SignatureDerString.encode(signature_point)
+
+		node_id = $digest_class.digest(signature)
+
+		config[:private_key] = private_key
+		config[:public_key] = public_key
+		config[:signature] = signature
+		config[:node_id] = node_id
+		File.open(@config_location, 'w') do |f| 
+			f.write(config.to_yaml) 
+		end
+	end
+
+	def valid_node_id?(address, public_key, signature, node_id)
+		require 'ecdsa'
+		group = ECDSA::Group::Secp256k1
+		public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
+		digest = Digest::SHA2.digest(address)
+		signature_point = ECDSA::Format::SignatureDerString.decode(signature)
+		ECDSA.valid_signature?(public_key_point, digest, signature) && node_id == $digest_class.digest(signature)
 	end
 
 	def to_contact
