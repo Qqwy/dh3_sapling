@@ -33,12 +33,12 @@ class KademliaNode
 		# Refreshes contents of the datastore by re-broadcasting values every tRefresh seconds.
 		@scheduler = Thread.new do
 			loop do
-				@logger.info "Starting scheduler sleep."
-				sleep 60
 				@logger.info "Running tRefresh schedule now!"
 				@data_store.values_to_refresh do |kv_hash|
 					iterative_store(kv_hash[:key], kv_hash[:value])
 				end
+				@logger.info "Starting scheduler sleep."
+				sleep 60
 			end
 		end
 

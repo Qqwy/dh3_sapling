@@ -82,8 +82,8 @@ class HashTable
 		change_happened = false
 		Dir[@root_path.join("*/*")].each do |e|
 			unless File.directory? e #Skip directories
-				puts "File: #{e}"
 				if File.mtime(e) < newer_than
+					puts "File: #{e}"
 					result = yield({key: path_to_key(Pathname.new(e)), value: File.binread(e)})
 					if result
 						FileUtils.touch(e)
