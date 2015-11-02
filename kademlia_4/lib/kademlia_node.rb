@@ -3,7 +3,7 @@
 
 require 'rest_client'
 
-class KademliaNode
+class KademliaNode < Rack::RPC::Server
 	@@alpha = 3		# degree of paralellism in network calls
 	@@B = 256 		# number of bits in a SHA256 digest, e.g. 256.
 	@@k = 8 		# maximum number of stored contacts per bucket.
@@ -56,7 +56,7 @@ class KademliaNode
 		@host = host
 		@port = port
 		@path = path
-		@server = KademliaServer.new(self, @port)
+		#@server = KademliaServer.new(self, @port)
 
 	end
 
@@ -308,4 +308,34 @@ class KademliaNode
 		end
 		return @bucket_list.length-1
 	end
+
+
+
+	#Rack-RPC part
+	public
+
+	def kademlia_ping #@s.add_handler('kademlia.ping') do |contactor_info|
+		self.add_or_update_contact contactor_info
+		self.handle_ping(KademliaContact.from_hash(contactor_info)).to_hash
+	end
+	
+	def kademlia_store #@s.add_handler('kademlia.store') do |contactor_info, key, value|
+		self.add_or_update_contact contactor_info
+		self.handle_store(key, value)
+	end
+	
+	def kademlia_find_node #@s.add_handler('kademlia.find_node') do |contactor_info, key_hash| 
+		self.add_or_update_contact contactor_info
+		self.handle_find_node(key_hash)
+	end
+	
+	def kademlia_find_value #@s.add_handler('kademlia.find_value') do |contactor_info, key_hash| 
+		self.add_or_update_contact contactor_info
+		self.handle_find_value(key_hash)self
+	end
+	rpc 'kademlia.ping' => :kademlia_ping
+	rpc 'kademlia.store' => :kademlia_store
+	rpc 'kademlia.find_node' => :kademlia_find_node
+	rpc 'kademlia.find_value' => :kademlia_find_value
+	
 end
