@@ -9,6 +9,8 @@ class KademliaBucketList
 
 	def <<(contact)
 
+		$logger.info "Attempting to add contact to buckets list: `#{contact}`"
+
 		# Never add yourself (or an impersonator).
 		if contact.node_id == self.node_id
 			return false 

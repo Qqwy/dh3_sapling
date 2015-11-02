@@ -29,6 +29,7 @@ class HashTable
 		used_key = key 
 		while File.exists?(key_to_path(used_key))
 			if fetch(used_key) == value
+				FileUtils.touch(key_to_path(used_key))
 				return used_key # Already exists. Do not store again.
 			end
 			used_key = digest(key)

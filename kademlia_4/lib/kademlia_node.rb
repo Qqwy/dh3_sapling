@@ -30,6 +30,20 @@ class KademliaNode
 		@node_id = $digest_class.digest @identifier
 		@data_store = HashTable.new("data_store/#{identifier}") #Value Store, keys are hash digests of the values.
 
+		# Refreshes contents of the datastore by re-broadcasting values every tRefresh seconds.
+		@scheduler = Thread.new do
+			loop do
+				@logger.info "Starting scheduler sleep."
+				sleep 1
+				@logger.info "Running tRefresh schedule now!"
+				@data_store.values_to_refresh do |kv_hash|
+					iterative_store(kv_hash[:key], kv_hash[:value])
+				end
+			end
+		end
+
+
+
 		 # Buckets of contacts. 
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
 		@bucket_list = KademliaBucketList.new(self.node_id, {max_bucket_size:@@k})
@@ -141,6 +155,9 @@ class KademliaNode
 
 		while shortlist.any?
 			contact = shortlist.shift
+			if contact.node_id == self.node_id
+				next
+			end
 
 			begin
 				if use_find_value then
@@ -235,8 +252,10 @@ class KademliaNode
 		if contacts.empty? then
 			return []
 		end
-		@logger.info "saving closest contact: `#{contacts.inspect}`"
+		contacts -= [self.to_contact]
+		@logger.info "saving closest contacts: `#{contacts.inspect}`"
 		#@logger.info contacts
+
 
 		closest_node = contacts.first
 		closest_distance = calc_distance(closest_node.node_id, key_hash)

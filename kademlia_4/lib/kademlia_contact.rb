@@ -24,7 +24,7 @@ class KademliaContact
 			@last_contact_time = Time.now
 			@times_connected += 1
 
-		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+		rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
        		$logger.warn "Connecting to `#{@address}:#{@port} -> #{@path}` threw the following error: #{e}"
        		raise Exceptions::KademliaClientConnectionError
    		end
