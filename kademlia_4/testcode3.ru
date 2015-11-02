@@ -16,7 +16,11 @@ $kn = KademliaNode.new(Pathname.new("./data_store/config/config3.yml"), known_ad
 
 #$ks1 = $kn1.server# = KademliaServer.new($kn1, "4501")
 #$ks2 = $kn2.server# = KademliaServer.new($kn2, "4502")
-$ks = $kn.server# = KademliaServer.new($kn3, "4503")
+#$ks = $kn.server# = KademliaServer.new($kn3, "4503")
+
+use Rack::RPC::Endpoint, $kn, path: "/"
+
+run Proc.new { |env| ['200', {'Content-Type' => 'text/html'}, ['This is node 3']] }
 
 
 

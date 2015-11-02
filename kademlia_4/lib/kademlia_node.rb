@@ -157,9 +157,9 @@ class KademliaNode < Rack::RPC::Server
 
 	end
 
-	def handle_ping(contact_info)
-		@logger.info "returning pong to ping"
-		@logger.info "adding node #{contact_info.inspect}"
+	def handle_ping
+		@logger.info "ping received. Returning contact info"
+		#@logger.info "adding node #{contact_info.inspect}"
 		#@bucket_list << KademliaContact.from_hash(contact_info) #Happens automatically now
 		#self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
 		@logger.info "Returning: #{self.to_contact.to_hash}"
@@ -313,7 +313,7 @@ class KademliaNode < Rack::RPC::Server
 
 		result = iterative_find_node(key_hash, true)
 		@logger.info "Result of iterative_find_value: `#{result}`"
-		return nil if result.empty? || result.kind_of?(Array)
+		return {"found"=> false, "key"=> key_hash}  if result.empty? || result.kind_of?(Array)
 
 		self.handle_store(key_hash, result["value"])
 
@@ -377,26 +377,10 @@ class KademliaNode < Rack::RPC::Server
 		$digest_class.to_num(hexencoded_hash)
 	end
 
-	#Sorts buckets, newest contacts drop to the bottom. (older contacts are preferred to talk with)
-	# def sort_bucket_contacts(bucketnum)
-	# 	@bucket_list[bucketnum].sort! {|a,b| a.last_contact_time <=> b.last_contact_time }
-	# end
 
-	#adds a certain KademliaContact to the correct bucket.
-	# def add_contact_to_buckets(contact)
-	# 	index = bucket_for_hash(contact.node_id)
-	# 	@bucket_list[index].push contact
-	# end
 
-	#Returns the bucket index to work on for a given hash
-	def bucket_for_hash(hash)
-		distance = calc_distance(@node_id, hash)
-			@bucket_list.each_with_index do |bucket, j|
-			if 2**j <= distance && distance < 2**(j+1) then
-				return j
-			end
-		end
-		return @bucket_list.length-1
+	def contacts
+		@bucket_list.contacts
 	end
 
 
@@ -404,28 +388,59 @@ class KademliaNode < Rack::RPC::Server
 	#Rack-RPC part
 	public
 
-	def kademlia_ping(contactor_info) #@s.add_handler('kademlia.ping') do |contactor_info|
+	# Two types of method:
+	# n2n => Node to Node contact. Updates information at one node with information of other.
+	# ep => endpoint. Called from another app that wants to use the resources, but is not a node itself.
+	#       Note that some functionality is not available here, as some primitive requests (find_node, store) are not supposed to be made by endpoints.
+	# A local object (another Rack app, e.g. Rails, etc.) can of course call the `ep_*` commands directly as well.
+
+
+	def n2n_ping(contactor_info) #@s.add_handler('kademlia.ping') do |contactor_info|
 		self.add_or_update_contact contactor_info
-		self.handle_ping(KademliaContact.from_hash(contactor_info)).to_hash
+		self.handle_ping.to_hash
+	end
+
+	def ep_ping
+		self.handle_ping.to_hash
 	end
 	
-	def kademlia_store(contactor_info, key, value) #@s.add_handler('kademlia.store') do |contactor_info, key, value|
+	def n2n_store(contactor_info, key, value) #@s.add_handler('kademlia.store') do |contactor_info, key, value|
 		self.add_or_update_contact contactor_info
 		self.handle_store(key, value)
 	end
+
+	def ep_store(key, value)
+		self.iterative_store(key, value)
+	end
 	
-	def kademlia_find_node(contactor_info, key_hash) #@s.add_handler('kademlia.find_node') do |contactor_info, key_hash| 
+	def n2n_find_node(contactor_info, key_hash) #@s.add_handler('kademlia.find_node') do |contactor_info, key_hash| 
 		self.add_or_update_contact contactor_info
 		self.handle_find_node(key_hash)
 	end
+
+	def ep_find_node(key_hash)
+		self.iterative_find_node(key_hash).map(&:to_hash)
+	end
 	
-	def kademlia_find_value(contactor_info, key_hash) #@s.add_handler('kademlia.find_value') do |contactor_info, key_hash| 
+	def n2n_find_value(contactor_info, key_hash) #@s.add_handler('kademlia.find_value') do |contactor_info, key_hash| 
 		self.add_or_update_contact contactor_info
 		self.handle_find_value(key_hash)
 	end
-	rpc 'kademlia_ping' => :kademlia_ping
-	rpc 'kademlia_store' => :kademlia_store
-	rpc 'kademlia_find_node' => :kademlia_find_node
-	rpc 'kademlia_find_value' => :kademlia_find_value
+
+	def ep_find_value(key_hash)
+		self.iterative_find_value(key_hash)
+	end
+
+	rpc 'n2n_ping' => :n2n_ping
+	rpc 'n2n_store' => :n2n_store
+	rpc 'n2n_find_node' => :n2n_find_node
+	rpc 'n2n_find_value' => :n2n_find_value
+
+
+	rpc 'ep_ping' => :ep_ping
+	rpc 'ep_store' => :ep_store
+	rpc 'ep_find_nodes' => :ep_find_node
+	rpc 'ep_find_value' => :ep_find_value
+
 	
 end
