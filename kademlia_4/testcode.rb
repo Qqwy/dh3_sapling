@@ -3,7 +3,7 @@ require './kademlia.rb'
 
 $kc1 = KademliaContact.new("contact1", "127.0.0.1", "4501")
 $kc2 = KademliaContact.new("contact2", "127.0.0.1", "4502")
-#$kc3 = KademliaContact.new("contact3", "127.0.0.1", "4503")
+$kc3 = KademliaContact.new("contact3", "127.0.0.1", "4503")
 
 
 $kn1 = KademliaNode.new("contact1", "127.0.0.1", "4501", "/", [$kc2])

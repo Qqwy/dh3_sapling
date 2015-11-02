@@ -92,7 +92,7 @@ class HashTable
 				end
 			end
 		end
-		return change_happened
+		change_happened
 	end
 
 end

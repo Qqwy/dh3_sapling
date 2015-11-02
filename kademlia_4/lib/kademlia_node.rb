@@ -34,7 +34,7 @@ class KademliaNode
 		@scheduler = Thread.new do
 			loop do
 				@logger.info "Starting scheduler sleep."
-				sleep 1
+				sleep 60
 				@logger.info "Running tRefresh schedule now!"
 				@data_store.values_to_refresh do |kv_hash|
 					iterative_store(kv_hash[:key], kv_hash[:value])
@@ -136,10 +136,10 @@ class KademliaNode
 		if @data_store.include?(key_hash)
 			kvalue = @data_store[key_hash] #TODO: Timeouts
 			@logger.info "found value on this node. Returning `#{key_hash}` => `#{kvalue.inspect}`"
-			return {found: true, key: key_hash, value: kvalue.value} 
+			return {"found"=> true, "key"=> key_hash, "value"=> kvalue} 
 		else
 			@logger.info "value for `#{key_hash}` not found. Returning closest nodes."
-			return {found: false, closest_nodes: handle_find_node(key_hash)}
+			return {"found"=> false, "closest_nodes"=> handle_find_node(key_hash)}
 		end
 	end
 
@@ -221,14 +221,17 @@ class KademliaNode
 		if @data_store.include?(key_hash) then
 			kvalue = @data_store[key_hash] #TODO: Timeouts
 			@logger.info "found value on local node. Returning `#{key_hash}` => `#{kvalue}`"
-			return {found: true, key: key_hash, value: kvalue} 
+			return {"found"=> true, "key"=> key_hash, "value"=> kvalue} 
 		end
 
 
 		result = iterative_find_node(key_hash, true)
 		@logger.info "Result of iterative_find_value: `#{result}`"
 		return nil if result.empty? || result.kind_of?(Array)
-		return result["value"]
+
+		self.handle_store(key_hash, result["value"])
+
+		return result
 	end
 
 	#if @@tRefresh has passed for a certain bucket, call this
