@@ -15,20 +15,26 @@ class KademliaNode < Rack::RPC::Server
 
 
 
-	attr_accessor :node_id, :identifier, :data_store, :bucket_list, :server
+	attr_accessor :node_id, :data_store, :bucket_list, :server
+	attr_reader :config
 
-	#identifier is used to determine the node ID. Should be a quasi-random number.
-	def initialize(identifier, host, port, path="/", known_nodes=[])
+	def initialize(config_location, known_addresses=[])
 
 		@logger = Logger.new(STDOUT)
 		@logger.level = Logger::DEBUG
-		@logger.progname = "`#{identifier}`"
 
 
+		
+		self.read_config(config_location)
 
-		@identifier = identifier.to_s
-		@node_id = $digest_class.digest @identifier
-		@data_store = HashTable.new("data_store/#{identifier}") #Value Store, keys are hash digests of the values.
+		@address = @config[:address]
+		@public_key = @config[:public_key]
+		@signature = @config[:signature]
+		@node_id = @config[:node_id]
+		@logger.progname = "`#{self.node_id}`"
+
+
+		@data_store = HashTable.new("data_store/#{self.node_id}") #Value Store, keys are hash digests of the values.
 
 		# Refreshes contents of the datastore by re-broadcasting values every tRefresh seconds.
 		@scheduler = Thread.new do
@@ -48,35 +54,113 @@ class KademliaNode < Rack::RPC::Server
 		 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
 		@bucket_list = KademliaBucketList.new(self.node_id, {max_bucket_size:@@k})
 
-		known_nodes.each do |contact|
-			@bucket_list << contact
-		
+		known_addresses.each do |address|
+			self.ping KademliaContact.new("", address)	
 		end
 
-		@host = host
-		@port = port
-		@path = path
-		#@server = KademliaServer.new(self, @port)
 
+		@server = KademliaServer.new(self, @address)
+
+		#Besides the known_addresses above, find out nodes that are close in the XOR-metric distance, and add them.
+		self.join_network
+
+	end
+
+	def read_config(config_location)
+		require 'yaml'
+		@config_location = config_location
+		config = YAML.load_file(config_location) || {}
+
+		puts config
+
+		if config[:public_key].nil? && config[:signature].nil? &&  config[:node_id].nil?
+			create_node_id(config)
+		elsif config[:public_key].nil? || config[:signature].nil? || config[:node_id].nil?
+			#TODO: check signature.
+			throw Exceptions::KademliaCorruptedConfigError
+		end
+		@config = config 
+	end
+
+	def create_node_id(config)
+		if !config[:private_key].nil?
+			throw Exceptions::KademliaCorruptedConfigError
+		end
+		if config[:address].nil?
+			throw Exceptions::KademliaNoAddressInConfigError
+		end
+
+		require 'ecdsa'
+		require 'securerandom'
+		group = ECDSA::Group::Secp256k1
+		private_key = 1 + SecureRandom.random_number(group.order - 1)
+		puts 'private key: %#x' % private_key
+
+		public_key_point = group.generator.multiply_by_scalar(private_key)
+		puts 'public key: '
+		puts '  x: %#x' % public_key_point.x
+		puts '  y: %#x' % public_key_point.y
+
+		public_key = ECDSA::Format::PointOctetString.encode(public_key_point, compression: true)
+
+
+		require 'digest/sha2'
+		message = config[:address]
+		digest = Digest::SHA2.digest(message)
+		signature_point = nil
+		while signature_point.nil?
+		  single_use_key = 1 + SecureRandom.random_number(group.order - 1)
+		  signature_point = ECDSA.sign(group, private_key, digest, single_use_key)
+		end
+		puts 'signature: '
+		puts '  r: %#x' % signature_point.r
+		puts '  s: %#x' % signature_point.s
+
+		signature = ECDSA::Format::SignatureDerString.encode(signature_point)
+
+		node_id = $digest_class.digest(signature)
+
+		config[:private_key] = private_key
+		config[:public_key] = public_key
+		config[:signature] = signature
+		config[:node_id] = node_id
+		File.open(@config_location, 'w') do |f| 
+			f.write(config.to_yaml) 
+		end
+	end
+
+	def valid_node_id?(address, public_key, signature, node_id)
+		require 'ecdsa'
+		group = ECDSA::Group::Secp256k1
+		public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
+		digest = Digest::SHA2.digest(address)
+		signature_point = ECDSA::Format::SignatureDerString.decode(signature)
+		ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == $digest_class.digest(signature)
 	end
 
 	def to_contact
 		#TODO: Init server with custom location.
-		KademliaContact.new(@node_id, "127.0.0.1", self.server.port)
+		KademliaContact.new(@node_id, @address, @public_key, @signature)
 	end
 
 	def ping(contact)
-		contact.client do |c|
-			c.ping(self.to_contact)
+		begin
+			contact.client do |c|
+				updated_contact_info = c.ping(self.to_contact)
+				add_or_update_contact(updated_contact_info)
+			end
+		rescue Exceptions::KademliaClientConnectionError
+			@logger.info "Disregard contact #{contact.name} because of a Connection Error"
 		end
 
 	end
 
 	def handle_ping(contact_info)
 		@logger.info "returning pong to ping"
-		@logger.info "adding node #{contact_info}"
-		@bucket_list << KademliaContact.from_hash(contact_info)
+		@logger.info "adding node #{contact_info.inspect}"
+		#@bucket_list << KademliaContact.from_hash(contact_info) #Happens automatically now
 		#self.add_contact_to_buckets(KademliaContact.from_hash(contact_info))
+		@logger.info "Returning: #{self.to_contact.to_hash}"
 		return self.to_contact
 	end
 
@@ -91,7 +175,7 @@ class KademliaNode < Rack::RPC::Server
 	def handle_store(key, value)
 		#key = $digest_class.digest value
 		actual_key = @data_store.store(key, value)
-		@logger.info "Storing `#{key}` => `#{value}`) on server #{@identifier}"
+		@logger.info "Storing `#{key}` => `#{value}`) on server #{self.node_id}"
 		@logger.info "Stored under key `#{actual_key}"
 		return actual_key
 	end
@@ -100,7 +184,7 @@ class KademliaNode < Rack::RPC::Server
 	def find_node(contact, key_hash)
 		@logger.info "searching for closest node."
 		contact.client do |c| 
-			@logger.info "Searching on #{contact.inspect}"
+			@logger.info "Searching on #{contact.name}"
 			hashed_contacts = c.find_node(self.to_contact, key_hash)
 			@logger.info "hashed contacts: #{hashed_contacts}"
 			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
@@ -123,7 +207,7 @@ class KademliaNode < Rack::RPC::Server
 	def find_value(contact, key_hash)
 		result = nil
 		contact.client do |c|
-			@logger.info "Calling RPC `find_value` on #{contact.inspect}"
+			@logger.info "Calling RPC `find_value` on #{contact.name}"
 			result = c.find_value(self.to_contact, key_hash)
 		end
 		return result
@@ -176,7 +260,7 @@ class KademliaNode < Rack::RPC::Server
 					new_shortlist = find_node(contact, key_hash)
 				end
 			rescue Exceptions::KademliaClientConnectionError => e
-				@logger.info "Contact #{contact.identifier} did not respond to `find_*` RPC. Skip to next."
+				@logger.info "Contact #{contact.name} did not respond to `find_*` RPC. Skip to next."
 				next #In the case of an error connecting to a contact, skip to the next one in the shortlist.
 			end
 			already_contacted_contacts << contact
@@ -210,7 +294,7 @@ class KademliaNode < Rack::RPC::Server
 		closest_contacts = iterative_find_node(key)
 		closest_contacts.each do |contact|
 			Thread.new do
-				@logger.info "Storing to #{contact}..."
+				@logger.info "Storing to #{contact.name}..."
 				store(contact, key, value)
 			end
 		end
@@ -256,7 +340,7 @@ class KademliaNode < Rack::RPC::Server
 			return []
 		end
 		contacts -= [self.to_contact]
-		@logger.info "saving closest contacts: `#{contacts.inspect}`"
+		@logger.info "saving closest contacts: `#{contacts.map(&:name)}`"
 		#@logger.info contacts
 
 
@@ -274,7 +358,11 @@ class KademliaNode < Rack::RPC::Server
 
 	def add_or_update_contact(contact_info)
 		contact = KademliaContact.from_hash(contact_info)
-		self.bucket_list.add_or_update_contact(contact)
+		if valid_node_id?(contact.address, contact.public_key, contact.signature, contact.node_id)
+			self.bucket_list.add_or_update_contact(contact)
+		else
+			logger.warn "Rejected adding/updating contact `#{contact.inspect}` because of invalid node_id."
+		end
 	end
 
 	#calculates the distance between two hashes: This can both be used between two nodes, a node and a to-be-stored-or-read value or two values.

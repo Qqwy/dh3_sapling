@@ -9,7 +9,7 @@ class KademliaBucketList
 
 	def <<(contact)
 
-		$logger.info "Attempting to add contact to buckets list: `#{contact}`"
+		$logger.info "Attempting to add contact to buckets list: `#{contact.name}`"
 
 		# Never add yourself (or an impersonator).
 		if contact.node_id == self.node_id
@@ -36,10 +36,10 @@ class KademliaBucketList
 
 	def add_or_update_contact(contact)
 		if index = self.contacts.index(contact) 
-			$logger.info "Updating Contact: #{contact.inspect}"
+			$logger.info "Updating Contact: #{contact.name}"
 			self.contacts[index].update_contact_time!
 		else
-			$logger.info "Storing new Contact: #{contact.inspect}"
+			$logger.info "Storing new Contact: #{contact.name}"
 			self << contact
 		end
 	end

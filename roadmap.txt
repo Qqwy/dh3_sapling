@@ -3,19 +3,18 @@ Kademlia:
 	-kademlia_4 contains most up-to-date version.
 
 	DONE:
+		-HashTable (storing on file system)
 		-Store contact info on connection made.
+		-Refresh values that are older than tRefresh time, using a cron-like method.
+		-Node ID generation using ECDSA. (+ storing this information in a config file. single_use_key is on purpose not stored; losing the signature -> losing the node ID)
+		-Side-step value storage for occupied keys.
 
 	TODO:
-		-HashTable (storing on file system)
-			-> Bloom filter?
-		-Refresh values that are older than tRefresh time, using a cron-like method.
+		-Look for possibilities of better multithreading.
 		-Comparing current (generic) XMLRPC library with something like Rack-RPC.
 			-> Can rack app be kept running across multiple requests?
 		-Persist contact information.
-		-Node ID generation using ECDSA. (+ storing this information in a file somewhere to persist?)
 		-ensure find_node works as wanted (returning less than `k` nodes okay or not?)
-		-Side-step value storage for occupied keys.
-		-Debug scheduler. Maybe use Clockwork or similar?
 		-Test running on multiple systems. (Local there seems to be a problem with XMLRPC + soft-threads that makes Client<->Server connection sometimes deadlock -> timeout)
 
 
