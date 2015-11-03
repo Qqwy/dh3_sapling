@@ -152,7 +152,7 @@ class KademliaNode < Rack::RPC::Server
 				add_or_update_contact(updated_contact_info)
 			end
 		rescue Exceptions::KademliaClientConnectionError
-			@logger.info "Disregard contact #{contact.name} because of a Connection Error"
+			@logger.info "ping: Disregard contact #{contact.name} because of a Connection Error"
 		end
 
 	end
@@ -168,10 +168,16 @@ class KademliaNode < Rack::RPC::Server
 
 	#Primitive operation to require contact to store data.
 	def store(contact, key, value)
-		contact.client do |c|
-			c.store(self.to_contact, key, value)
+		actual_key = nil
+		begin
+			contact.client do |c|
+				actual_key = c.store(self.to_contact, key, value)
+				@logger.info "Value stored. Reference key: `#{actual_key}`"
+			end
+		rescue Exceptions::KademliaClientConnectionError
+			@logger.info "store: Value not stored on #{contact.name} because of a Connection Error"
 		end
-		@logger.info "Value stored. Reference key: `#{key}`"
+		return actual_key
 	end
 
 	def handle_store(key, value)
@@ -185,13 +191,17 @@ class KademliaNode < Rack::RPC::Server
 	#Primitive operation to require contact to return up to @@k KademliaContacts closest to given key
 	def find_node(contact, key_hash)
 		@logger.info "searching for closest node."
-		contact.client do |c| 
-			@logger.info "Searching on #{contact.name}"
-			hashed_contacts = c.find_node(self.to_contact, key_hash)
-			@logger.info "hashed contacts: #{hashed_contacts}"
-			result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
-			@logger.info "result of find_node: `#{result}`"
-			return result
+		begin
+			contact.client do |c| 
+				@logger.info "Searching on #{contact.name}"
+				hashed_contacts = c.find_node(self.to_contact, key_hash)
+				@logger.info "hashed contacts: #{hashed_contacts}"
+				result = hashed_contacts.map{|hashed_contact| KademliaContact.from_hash(hashed_contact)}
+				@logger.info "result of find_node: `#{result}`"
+				return result
+			end
+		rescue Exceptions::KademliaClientConnectionError
+			@logger.info "find_node: Disregard contact #{contact.name} because of a Connection Error"
 		end
 		return []
 	end
@@ -208,9 +218,13 @@ class KademliaNode < Rack::RPC::Server
 	# => if not, return the result of `#find_node` (closest contacts that might know it)
 	def find_value(contact, key_hash)
 		result = nil
-		contact.client do |c|
-			@logger.info "Calling RPC `find_value` on #{contact.name}"
-			result = c.find_value(self.to_contact, key_hash)
+		begin
+			contact.client do |c|
+				@logger.info "Calling RPC `find_value` on #{contact.name}"
+				result = c.find_value(self.to_contact, key_hash)
+			end
+		rescue Exceptions::KademliaClientConnectionError
+			@logger.info "find_value: Disregard contact #{contact.name} because of a Connection Error"
 		end
 		return result
 	end
@@ -241,6 +255,7 @@ class KademliaNode < Rack::RPC::Server
 
 		while shortlist.any?
 			contact = shortlist.shift
+			already_contacted_contacts << contact
 			if contact.node_id == self.node_id
 				next
 			end
@@ -265,9 +280,9 @@ class KademliaNode < Rack::RPC::Server
 				@logger.info "Contact #{contact.name} did not respond to `find_*` RPC. Skip to next."
 				next #In the case of an error connecting to a contact, skip to the next one in the shortlist.
 			end
-			already_contacted_contacts << contact
 			
 			shortlist += new_shortlist #add all new contacts
+			shortlist.uniq!
 
 			shortlist -= already_contacted_contacts #remove all contacts that have been contacted before.
 
