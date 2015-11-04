@@ -14,7 +14,7 @@ module Sapling
 
 
 
-		attr_accessor :node_id, :data_store, :bucket_list, :server
+		attr_accessor :node_id, :data_store, :bucket_list, :server, :logger
 		attr_reader :config
 
 		def initialize(config_location, known_addresses=[])
@@ -75,6 +75,8 @@ module Sapling
 			elsif config[:public_key].nil? || config[:signature].nil? || config[:node_id].nil?
 				#TODO: check signature.
 				throw Sapling::CorruptedConfigError
+			elsif !valid_node_id?(config[:address], config[:public_key], config[:signature], config[:node_id])
+				throw Sapling::CorruptedConfigError
 			else
 				@logger.unknown "Loading Config File Finished. Node ID: `#{config[:node_id]}`"
 			end
@@ -109,7 +111,7 @@ module Sapling
 
 			@logger.unknown "Generating Signature..."
 
-			digest = Digest::SHA2.digest(address)
+			digest = Sapling.digest_class.digest(address)
 			signature_point = nil
 			while signature_point.nil?
 			  single_use_key = 1 + SecureRandom.random_number(group.order - 1)
@@ -120,7 +122,7 @@ module Sapling
 
 			signature = ECDSA::Format::SignatureDerString.encode(signature_point)
 
-			node_id = $digest_class.digest(signature)
+			node_id = Sapling.digest_class.digest(signature)
 
 			@logger.unknown "Writing to Config File..."
 
@@ -129,6 +131,10 @@ module Sapling
 			config[:public_key] = public_key
 			config[:signature] = signature
 			config[:node_id] = node_id
+
+
+
+
 			File.open(@config_location, 'w') do |f| 
 				f.write(config.to_yaml) 
 			end
@@ -140,9 +146,9 @@ module Sapling
 			require 'ecdsa'
 			group = ECDSA::Group::Secp256k1
 			public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
-			digest = Digest::SHA2.digest(address)
+			digest = Sapling.digest_class.digest(address)
 			signature_point = ECDSA::Format::SignatureDerString.decode(signature)
-			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == $digest_class.digest(signature)
+			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == Sapling.digest_class.digest(signature)
 		end
 
 		def to_contact
@@ -183,7 +189,7 @@ module Sapling
 		end
 
 		def handle_store(key, value)
-			#key = $digest_class.digest value
+			#key = Sapling.digest_class.digest value
 			actual_key = @data_store.store(key, value)
 			@logger.info "Storing `#{actual_key}` => `#{value}`) on locally"
 			return actual_key
@@ -301,7 +307,7 @@ module Sapling
 		end
 
 		def iterative_store(key, value)
-			#key = $digest_class.digest value
+			#key = Sapling.digest_class.digest value
 			result_key = self.handle_store(key, value) #Also store locally, as there is a high possibility that it will be re-requested by uploader.
 			
 			closest_contacts = iterative_find_node(key)
@@ -386,7 +392,7 @@ module Sapling
 
 		#Changes a hash in string representation to a Bignum.
 		def hash_as_num(hexencoded_hash)
-			$digest_class.to_num(hexencoded_hash)
+			Sapling.digest_class.to_num(hexencoded_hash)
 		end
 
 

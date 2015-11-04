@@ -25,7 +25,7 @@ module Sapling
 		end
 
 		#Stores the value using side-stepping.
-		#TODO: Isolate re-hashing behaviour to use $digest_class properly.
+		#TODO: Isolate re-hashing behaviour to use Sapling.digest_class properly.
 		def store(key, value)
 			used_key = key 
 			while File.exists?(key_to_path(used_key))
@@ -33,7 +33,7 @@ module Sapling
 					FileUtils.touch(key_to_path(used_key))
 					return used_key # Already exists. Do not store again.
 				end
-				used_key = digest(key)
+				used_key = Sapling.digest_class.digest(key)
 			end
 			file_path = key_to_path(used_key)
 
@@ -98,9 +98,4 @@ module Sapling
 
 	end
 
-
-	def digest(hash)
-		require 'digest/sha2'
-		return Digest.hexdigest(hash)
-	end
 end

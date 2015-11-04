@@ -11,7 +11,7 @@ describe SaplingContact do
 
 	describe "@node_id" do 
 		it "should hash the passed identifier and keep it as node_id" do 
-			expect(@kc.node_id).to eq ($digest_class.digest "contact1")
+			expect(@kc.node_id).to eq (Sapling.digest_class.digest "contact1")
 		end
 	end
 	describe "@custom_time" do
@@ -131,7 +131,7 @@ describe SaplingNode do
 
 	describe "#save_closest_contact" do 
 		it "should return an empty array when passed an empty array" do 
-			expect(@kn.save_closest_contact([], $digest_class.digest("100")).empty?).to be true
+			expect(@kn.save_closest_contact([], Sapling.digest_class.digest("100")).empty?).to be true
 		end
 		it "should return an array [closest contact, distance to this contact], when being passed multiple" do 
 			closest_contact = SaplingContact.new("102", "127.0.0.1", "3004")
@@ -140,10 +140,10 @@ describe SaplingNode do
 					SaplingContact.new("101", "127.0.0.1", "3005"),
 					SaplingContact.new("103", "127.0.0.1", "3006")
 				]
-			result = @kn.save_closest_contact(close_contacts, $digest_class.digest("100"))
+			result = @kn.save_closest_contact(close_contacts, Sapling.digest_class.digest("100"))
 			expect(result.length).to eq 2
 			expect(result.first).to eq closest_contact
-			expect(result.last).to eq @kn.calc_distance($digest_class.digest("100"),$digest_class.digest("102"))
+			expect(result.last).to eq @kn.calc_distance(Sapling.digest_class.digest("100"),Sapling.digest_class.digest("102"))
 		end
 	end
 end

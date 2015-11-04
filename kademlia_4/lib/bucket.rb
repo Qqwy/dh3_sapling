@@ -25,7 +25,7 @@ module Sapling
 		end
 
 		def contains?(hash)
-			return (self.start_num..self.end_num).include?  $digest_class.to_num(hash)
+			return (self.start_num..self.end_num).include?  Sapling.digest_class.to_num(hash)
 		end
 
 		def size
@@ -50,7 +50,7 @@ module Sapling
 		end
 
 		def split!
-			lower_contacts, higher_contacts = self.contacts.partition {|c| $digest_class.to_num(c.node_id) < self.middle_num}
+			lower_contacts, higher_contacts = self.contacts.partition {|c| Sapling.digest_class.to_num(c.node_id) < self.middle_num}
 
 			lower =  Sapling::Bucket.new(self.start_num, self.middle_num,{max_bucket_size: @max_size}, lower_contacts)
 			higher = Sapling::Bucket.new(self.middle_num, self.end_num,  {max_bucket_size: @max_size}, higher_contacts)

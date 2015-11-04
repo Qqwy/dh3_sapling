@@ -4,7 +4,7 @@ module Sapling
 		attr_reader :buckets, :node_id
 		def initialize(node_id, settings)
 			@node_id = node_id
-			@buckets = [Sapling::Bucket.new(0, $digest_class.hash_size, settings)]
+			@buckets = [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
 		end
 
 
