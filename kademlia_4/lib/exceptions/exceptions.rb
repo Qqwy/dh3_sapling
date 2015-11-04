@@ -1,9 +1,9 @@
-module Exceptions
+module Sapling
 
 	class BucketNotFoundError < StandardError; end
-	class KademliaClientConnectionError < StandardError; end
-	class KademliaCorruptedConfigError < StandardError; end
-	class KademliaNoPrivateKeyInConfigError < StandardError; end
-	class KademliaNoAddressInConfigError < StandardError; end
+	class ClientConnectionError < StandardError; end
+	class CorruptedConfigError < StandardError; end
+	class NoPrivateKeyInConfigError < StandardError; end
+	class NoAddressInConfigError < StandardError; end
 
 end

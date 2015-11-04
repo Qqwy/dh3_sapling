@@ -1,12 +1,12 @@
 require 'spec_helper'
-require 'kademlia'
+require 'sapling'
 
 
 
-describe KademliaContact do 
+describe SaplingContact do 
 
 	before :each do 
-		@kc = KademliaContact.new("contact1", "127.0.0.1", "3001")
+		@kc = SaplingContact.new("contact1", "127.0.0.1", "3001")
 	end	
 
 	describe "@node_id" do 
@@ -17,7 +17,7 @@ describe KademliaContact do
 	describe "@custom_time" do
 		it "should keep track of the last contact_time if created with a different time" do 
 			custom_time = Time.now() - 3600
-			@kc2 = KademliaContact.new("contact2", "127.0.0.1", "3002", contact_time: custom_time)
+			@kc2 = SaplingContact.new("contact2", "127.0.0.1", "3002", contact_time: custom_time)
 			expect(@kc2.last_contact_time).to eq custom_time
 		end
 	end
@@ -27,27 +27,27 @@ describe KademliaContact do
 			expect(@kc == @kc).to be true
 		end
 		it "should equal another contact with the same settings" do 
-			@kc2 = KademliaContact.new("contact1", "127.0.0.1", "3001")
+			@kc2 = SaplingContact.new("contact1", "127.0.0.1", "3001")
 			expect(@kc == @kc2).to be true
 		end
 		it "should not be equal to  a contact with different settings." do
-			@kc2 = KademliaContact.new("contact1", "127.0.0.1", "3002")
+			@kc2 = SaplingContact.new("contact1", "127.0.0.1", "3002")
 			expect(@kc == @kc2).to be false
 		end
 	end
 
 	describe "#to_hash and #from_hash" do
 		it "self.to_hash.from_hash should equal self" do
-			expect(KademliaContact.from_hash(@kc.to_hash) == @kc).to be true
+			expect(SaplingContact.from_hash(@kc.to_hash) == @kc).to be true
 		end
 	end
 end
 
 
-describe KademliaBucket do
+describe SaplingBucket do
 	before :each do 
-		@kb = KademliaBucket.new(100,2**256, {max_bucket_size:2})
-		@kc = KademliaContact.new("contact1", "127.0.0.1", "3001")
+		@kb = SaplingBucket.new(100,2**256, {max_bucket_size:2})
+		@kc = SaplingContact.new("contact1", "127.0.0.1", "3001")
 	end
 
 	describe "#middle_num" do 
@@ -87,21 +87,21 @@ describe KademliaBucket do
 	end
 end
 
-describe KademliaBucketList do
+describe SaplingBucketList do
 	#TODO
 end
 
-describe KademliaNode do
+describe SaplingNode do
 	before :each do 
-		@kn = KademliaNode.new("test_identifier", [
-			KademliaContact.new("contact1", "127.0.0.1", "3001"),
-			KademliaContact.new("contact2", "127.0.0.1", "3002")
+		@kn = SaplingNode.new("test_identifier", [
+			SaplingContact.new("contact1", "127.0.0.1", "3001"),
+			SaplingContact.new("contact2", "127.0.0.1", "3002")
 			])
 	end
 
 	describe "#new" do 
-		it "takes at least one parameter and returns a KademliaNode" do 
-			expect(@kn).to be_an_instance_of KademliaNode
+		it "takes at least one parameter and returns a SaplingNode" do 
+			expect(@kn).to be_an_instance_of SaplingNode
 		end
 	end
 
@@ -134,11 +134,11 @@ describe KademliaNode do
 			expect(@kn.save_closest_contact([], $digest_class.digest("100")).empty?).to be true
 		end
 		it "should return an array [closest contact, distance to this contact], when being passed multiple" do 
-			closest_contact = KademliaContact.new("102", "127.0.0.1", "3004")
+			closest_contact = SaplingContact.new("102", "127.0.0.1", "3004")
 			close_contacts = [
 					closest_contact,
-					KademliaContact.new("101", "127.0.0.1", "3005"),
-					KademliaContact.new("103", "127.0.0.1", "3006")
+					SaplingContact.new("101", "127.0.0.1", "3005"),
+					SaplingContact.new("103", "127.0.0.1", "3006")
 				]
 			result = @kn.save_closest_contact(close_contacts, $digest_class.digest("100"))
 			expect(result.length).to eq 2
