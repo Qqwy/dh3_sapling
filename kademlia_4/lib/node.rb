@@ -29,6 +29,7 @@ module Sapling
 			@address = @config[:address]
 			@public_key = @config[:public_key]
 			@signature = @config[:signature]
+			@bcrypt_salt = @config[:bcrypt_salt]
 			@node_id = @config[:node_id]
 			@logger.progname = "`#{self.node_id[0..3]}...#{self.node_id[-4..-1]}<->#{@address}`"
 
@@ -70,12 +71,12 @@ module Sapling
 			@config_location = config_location
 			config = YAML.load_file(config_location) || {}
 
-			if config[:public_key].nil? && config[:signature].nil? &&  config[:node_id].nil?
+			if config[:public_key].nil? && config[:signature].nil? && config[:bcrypt_salt].nil? && config[:node_id].nil? 
 				create_node_id(config)
-			elsif config[:public_key].nil? || config[:signature].nil? || config[:node_id].nil?
+			elsif config[:public_key].nil? || config[:signature].nil? || config[:bcrypt_salt].nil? || config[:node_id].nil?
 				#TODO: check signature.
 				throw Sapling::CorruptedConfigError
-			elsif !valid_node_id?(config[:address], config[:public_key], config[:signature], config[:node_id])
+			elsif !valid_node_id?(config[:address], config[:public_key], config[:signature], config[:bcrypt_salt], config[:node_id])
 				throw Sapling::CorruptedConfigError
 			else
 				@logger.unknown "Loading Config File Finished. Node ID: `#{config[:node_id]}`"
@@ -86,7 +87,7 @@ module Sapling
 		def create_node_id(config)
 			require 'ecdsa'
 			require 'securerandom'
-			require 'digest/sha2'
+			require 'bcrypt'
 
 			#Allow manually setting a private key, when this is copied over from an earlier node instance (possibly hosted elsewhere)
 			#Obviously, this should be a large random integer number, > 0.
@@ -121,8 +122,11 @@ module Sapling
 			@logger.unknown "Hashing Signature to form Node ID..."
 
 			signature = ECDSA::Format::SignatureDerString.encode(signature_point)
+			bcrypt_salt = BCrypt::Engine.generate_salt(10)
 
-			node_id = Sapling.digest_class.digest(signature)
+			bcrypted_signature = BCrypt::Engine.hash_secret(signature, bcrypt_salt)
+
+			node_id = Sapling.digest_class.digest(bcrypted_signature)
 
 			@logger.unknown "Writing to Config File..."
 
@@ -130,6 +134,7 @@ module Sapling
 			config[:private_key] = private_key
 			config[:public_key] = public_key
 			config[:signature] = signature
+			config[:bcrypt_salt] = bcrypt_salt
 			config[:node_id] = node_id
 
 
@@ -142,17 +147,20 @@ module Sapling
 			@logger.unknown "Finished. Node ID: `#{config[:node_id]}`"
 		end
 
-		def valid_node_id?(address, public_key, signature, node_id)
+		def valid_node_id?(address, public_key, signature, bcrypt_salt, node_id)
 			require 'ecdsa'
+			require 'bcrypt'
 			group = ECDSA::Group::Secp256k1
 			public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
 			digest = Sapling.digest_class.digest(address)
 			signature_point = ECDSA::Format::SignatureDerString.decode(signature)
-			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == Sapling.digest_class.digest(signature)
+			test_node_id = Sapling.digest_class.digest(BCrypt::Engine.hash_secret(signature, bcrypt_salt))
+
+			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == test_node_id
 		end
 
 		def to_contact
-			Sapling::Contact.new(@node_id, @address, @public_key, @signature)
+			Sapling::Contact.new(@node_id, @address, @public_key, @signature, @bcrypt_salt)
 		end
 
 		def ping(contact)
@@ -378,7 +386,7 @@ module Sapling
 
 		def add_or_update_contact(contact_info)
 			contact = Sapling::Contact.from_hash(contact_info)
-			if valid_node_id?(contact.address, contact.public_key, contact.signature, contact.node_id)
+			if valid_node_id?(contact.address, contact.public_key, contact.signature, contact.bcrypt_salt, contact.node_id)
 				self.bucket_list.add_or_update_contact(contact)
 			else
 				logger.warn "Rejected adding/updating contact `#{contact.inspect}` because of invalid node_id."

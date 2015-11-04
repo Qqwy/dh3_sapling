@@ -1,7 +1,10 @@
 source 'https://rubygems.org'
-gem 'ecdsa' #Used to generate and verify signatures.
-gem 'rack-rpc' #Runs the KademliaNode inside a Rack stack, and exposes its RPC functionality.
+gem 'ecdsa' 		# Used to generate and verify signatures.
+gem 'rack-rpc' 		# Runs the KademliaNode inside a Rack stack, and exposes its RPC functionality.
+gem 'bcrypt' 		# Used to hash results of Node ID generation. Because of its slowness, this prevents Sybil attacks (e.g. `vanity` Node ID generation is extremely slow).
 
-gem 'digest-sha3' #For the default Digest class, which is Keccak.
+
+
+gem 'digest-sha3' 	#For the default Digest class, which is Keccak.
 
 gem 'rspec', :require => 'spec' #For running tests

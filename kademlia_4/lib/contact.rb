@@ -4,13 +4,14 @@ require 'base64'
 module Sapling
 	class Contact
 
-		attr_reader :node_id, :address, :public_key, :signature, :last_contact_time, :times_connected
+		attr_reader :node_id, :address, :public_key, :signature, :bcrypt_salt, :last_contact_time, :times_connected
 
-		def initialize(node_id, address, public_key='', signature='', contact_time: Time.now)
+		def initialize(node_id, address, public_key='', signature='', bcrypt_salt='', contact_time: Time.now)
 			@node_id = node_id
 			@address = address
 			@public_key = public_key
 			@signature = signature
+			@bcrypt_salt = bcrypt_salt
 			@last_contact_time = contact_time #used to sort contacts and see which ones are still functioning.
 			@times_connected = 0
 		end
@@ -45,8 +46,9 @@ module Sapling
 			return {
 				"node_id" => @node_id,
 				"address" => @address,
-				"public_key" => Base64.encode64(@public_key),
-				"signature" => Base64.encode64(@signature)
+				"public_key" => UrlsafePaddinglessBase64.encode(@public_key),
+				"signature" => UrlsafePaddinglessBase64.encode(@signature),
+				"bcrypt_salt" => UrlsafePaddinglessBase64.encode(@bcrypt_salt)
 			}
 		end
 
@@ -55,12 +57,12 @@ module Sapling
 		end
 
 		def self.from_hash(hash)
-			$logger.debug hash
 			Sapling::Contact.new(
 					hash["node_id"],
 					hash["address"],
-					Base64.decode64(hash["public_key"]),
-					Base64.decode64(hash["signature"])
+					UrlsafePaddinglessBase64.decode(hash["public_key"]),
+					UrlsafePaddinglessBase64.decode(hash["signature"]),
+					UrlsafePaddinglessBase64.decode(hash["bcrypt_salt"]),
 				)
 		end
 
