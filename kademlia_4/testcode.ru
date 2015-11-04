@@ -1,3 +1,4 @@
+#\ -p 4501
 require './kademlia.rb'
 
 
@@ -8,7 +9,7 @@ require './kademlia.rb'
 known_addresses = %w(http://127.0.0.1:4502/)
 
 
-$kn = KademliaNode.new(Pathname.new("./data_store/config/config1.yml"), known_addresses)
+#$kn = KademliaNode.new(Pathname.new("./data_store/config/config1.yml"), known_addresses)
 #$kn2 = KademliaNode.new("contact2", "127.0.0.1", "4502", "/", [$kc1, $kc3])
 #$kn3 = KademliaNode.new("contact3", "127.0.0.1", "4503", "/", [$kc1, $kc2])
 
@@ -17,7 +18,9 @@ $kn = KademliaNode.new(Pathname.new("./data_store/config/config1.yml"), known_ad
 #$ks = $kn.server# = KademliaServer.new($kn1, "4501")
 #$ks2 = $kn2.server# = KademliaServer.new($kn2, "4502")
 #$ks3 = $kn3.server# = KademliaServer.new($kn3, "4503")
-use Rack::RPC::Endpoint, $kn, path: "/"
+#use Rack::RPC::Endpoint, $kn, path: "/"
+
+use KademliaNodeMiddleware, Pathname.new("./data_store/config/config1.yml"), known_addresses, path:"/"
 
 run Proc.new { |env| ['200', {'Content-Type' => 'text/html'}, ['This is node 1']] }
 

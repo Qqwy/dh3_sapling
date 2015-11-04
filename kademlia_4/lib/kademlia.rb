@@ -15,14 +15,25 @@ class StubDigest
 	end
 end
 
+
+class ModifiedBase64
+	def self.encode(str)
+		Base64.encode64(str).tr('+/','-_').gsub(/[\n=]/,'')
+	end
+
+	def self.decode(str)
+		Base64.decode64(str.tr('-_','+/'))
+	end
+end
+
+
+#TODO: Find better way to do this. For instance, using Base64? (How to go from Base64-string to int?)
 class SHA256Digest
 	require 'digest'
 	require 'base64'
 
 	def self.digest(hash)
-		return Digest.hexencode Digest::SHA2.digest(hash)
-		#return Base64.urlsafe_encode64(Digest::SHA256.digest(hash.to_s))
-		#.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+		return Digest::SHA2.hexdigest(hash)
 	end
 
 	def self.to_num(hash_as_str)
@@ -56,6 +67,7 @@ require './lib/kademlia_bucket'
 require './lib/kademlia_contact'
 require './lib/kademlia_client'
 
+require './lib/kademlia_node_middleware'
 
 
 

@@ -23,7 +23,7 @@ class KademliaNode < Rack::RPC::Server
 	def initialize(config_location, known_addresses=[])
 
 		@logger = Logger.new(STDOUT)
-		@logger.level = Logger::DEBUG
+		@logger.level = Logger::INFO
 
 
 		
@@ -33,7 +33,7 @@ class KademliaNode < Rack::RPC::Server
 		@public_key = @config[:public_key]
 		@signature = @config[:signature]
 		@node_id = @config[:node_id]
-		@logger.progname = "`#{self.node_id}<->#{self.address}`"
+		@logger.progname = "`#{self.node_id[0..3]}...#{self.node_id[-4..-1]}<->#{@address}`"
 
 
 		@data_store = HashTable.new("data_store/#{self.node_id}") #Value Store, keys are hash digests of the values.
@@ -73,13 +73,13 @@ class KademliaNode < Rack::RPC::Server
 		@config_location = config_location
 		config = YAML.load_file(config_location) || {}
 
-		puts config
-
 		if config[:public_key].nil? && config[:signature].nil? &&  config[:node_id].nil?
 			create_node_id(config)
 		elsif config[:public_key].nil? || config[:signature].nil? || config[:node_id].nil?
 			#TODO: check signature.
 			throw Exceptions::KademliaCorruptedConfigError
+		else
+			@logger.unknown "Loading Config File Finished. Node ID: `#{config[:node_id]}`"
 		end
 		@config = config 
 	end
@@ -89,7 +89,9 @@ class KademliaNode < Rack::RPC::Server
 		require 'securerandom'
 		require 'digest/sha2'
 
-		if !config[:private_key].nil?
+		#Allow manually setting a private key, when this is copied over from an earlier node instance (possibly hosted elsewhere)
+		#Obviously, this should be a large random integer number, > 0.
+		if !config[:private_key].nil? && config[:private_key].to_i == 0
 			throw Exceptions::KademliaCorruptedConfigError
 		end
 		if config[:address].nil?
@@ -284,7 +286,7 @@ class KademliaNode < Rack::RPC::Server
 
 
 			new_closest_node, new_closest_distance = save_closest_contact(new_shortlist, key_hash)
-			if new_closest_distance < closest_distance then
+			if !new_closest_distance.nil? && new_closest_distance < closest_distance then
 				closest_distance = new_closest_distance
 				closest_node = new_closest_node
 			end
@@ -351,10 +353,10 @@ class KademliaNode < Rack::RPC::Server
 	#private
 	
 	def save_closest_contact(contacts, key_hash)
+		contacts.reject! {|c| c.node_id == self.node_id} #The local node should never be considered closest.
 		if contacts.empty? then
 			return []
 		end
-		contacts.reject! {|c| c.node_id == self.node_id} #The local node should never be considered closest.
 		@logger.info "saving closest contacts: `#{contacts.map(&:name)}` vs `#{self.to_contact.name}`"
 		#@logger.info contacts
 
