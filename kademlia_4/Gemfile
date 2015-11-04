@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
-gem 'rspec', :require => 'spec'
-gem 'rest_client'
-gem 'ecdsa'
-gem 'eventmachine'
-gem 'rack-rpc'
+gem 'ecdsa' #Used to generate and verify signatures.
+gem 'rack-rpc' #Runs the KademliaNode inside a Rack stack, and exposes its RPC functionality.
+
+gem 'digest-sha3' #For the default Digest class, which is Keccak.
+
+gem 'rspec', :require => 'spec' #For running tests
