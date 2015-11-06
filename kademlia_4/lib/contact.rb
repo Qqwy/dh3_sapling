@@ -16,6 +16,20 @@ module Sapling
 			@times_connected = 0
 		end
 
+
+		def self.valid_node_id?(address, public_key, signature, bcrypt_salt, node_id)
+			require 'ecdsa'
+			require 'bcrypt'
+			group = ECDSA::Group::Secp256k1
+			public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
+			digest = Sapling.digest_class.digest(address)
+			signature_point = ECDSA::Format::SignatureDerString.decode(signature)
+			test_node_id = Sapling.digest_class.digest(BCrypt::Engine.hash_secret(signature, bcrypt_salt))
+
+			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == test_node_id
+		end
+
+
 		def client
 			begin 
 				uri = URI(@address)

@@ -12,6 +12,8 @@ module Sapling
 		@@tReplicate = 3600 	#Interval between republication events, when a node is required to publish its entire database.
 		@@tRepublish = 86400 	#time after which the original publisher must republish a key/value pair for it not to disappear.
 
+		
+
 
 
 		attr_accessor :node_id, :data_store, :bucket_list, :server, :logger
@@ -52,7 +54,7 @@ module Sapling
 
 			 # Buckets of contacts. 
 			 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
-			@bucket_list = Sapling::BucketList.read_or_create_new(self.node_id, {max_bucket_size:@@k, file_location:"sapling_data/#{self.node_id}/"})
+			@bucket_list = Sapling::BucketList.new(self.node_id, "sapling_data/#{self.node_id}/", {max_bucket_size:@@k})
 
 			known_addresses.each do |address|
 				self.ping Sapling::Contact.new("", address)	
@@ -76,7 +78,7 @@ module Sapling
 			elsif config[:public_key].nil? || config[:signature].nil? || config[:bcrypt_salt].nil? || config[:node_id].nil?
 				#TODO: check signature.
 				throw Sapling::CorruptedConfigError
-			elsif !valid_node_id?(config[:address], config[:public_key], config[:signature], config[:bcrypt_salt], config[:node_id])
+			elsif !Sapling::Contact.valid_node_id?(config[:address], config[:public_key], config[:signature], config[:bcrypt_salt], config[:node_id])
 				throw Sapling::CorruptedConfigError
 			else
 				@logger.unknown "Loading Config File Finished. Node ID: `#{config[:node_id]}`"
@@ -122,7 +124,7 @@ module Sapling
 			@logger.unknown "Hashing Signature to form Node ID..."
 
 			signature = ECDSA::Format::SignatureDerString.encode(signature_point)
-			bcrypt_salt = BCrypt::Engine.generate_salt(10)
+			bcrypt_salt = BCrypt::Engine.generate_salt(Sapling.bcrypt_salt_strengh)
 
 			bcrypted_signature = BCrypt::Engine.hash_secret(signature, bcrypt_salt)
 
@@ -147,17 +149,6 @@ module Sapling
 			@logger.unknown "Finished. Node ID: `#{config[:node_id]}`"
 		end
 
-		def valid_node_id?(address, public_key, signature, bcrypt_salt, node_id)
-			require 'ecdsa'
-			require 'bcrypt'
-			group = ECDSA::Group::Secp256k1
-			public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
-			digest = Sapling.digest_class.digest(address)
-			signature_point = ECDSA::Format::SignatureDerString.decode(signature)
-			test_node_id = Sapling.digest_class.digest(BCrypt::Engine.hash_secret(signature, bcrypt_salt))
-
-			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == test_node_id
-		end
 
 		def to_contact
 			Sapling::Contact.new(@node_id, @address, @public_key, @signature, @bcrypt_salt)
@@ -389,11 +380,7 @@ module Sapling
 
 		def add_or_update_contact(contact_info)
 			contact = Sapling::Contact.from_hash(contact_info)
-			if valid_node_id?(contact.address, contact.public_key, contact.signature, contact.bcrypt_salt, contact.node_id)
-				self.bucket_list.add_or_update_contact(contact)
-			else
-				logger.warn "Rejected adding/updating contact `#{contact.inspect}` because of invalid node_id."
-			end
+			self.bucket_list.add_or_update_contact(contact)
 		end
 
 		#calculates the distance between two hashes: This can both be used between two nodes, a node and a to-be-stored-or-read value or two values.

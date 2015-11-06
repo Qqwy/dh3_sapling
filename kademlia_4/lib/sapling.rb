@@ -27,8 +27,10 @@ module Sapling
 
 	require './lib/keccak_digest'
 	@digest_class = KeccakDigest
+	@bcrypt_salt_strengh = 15
 	class << self
-		attr_accessor :digest_class
+		attr_accessor :digest_class, :bcrypt_salt_strengh
+
 	end
 
 

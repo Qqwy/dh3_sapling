@@ -4,13 +4,8 @@ module Sapling
 		attr_reader :buckets, :node_id, :contacts_store_location
 		def initialize(node_id, contacts_store_location, settings)
 			@node_id = node_id
-			@buckets = [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
 			@contacts_store_location = Pathname.new(contacts_store_location)
-
-			contacts = YAML.load_file(contacts_store_location) || {}
-			contacts.each do |c|
-				self << c
-			end
+			@buckets = YAML.load_file(contacts_store_location) || [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
 		end
 
 
@@ -46,8 +41,13 @@ module Sapling
 				$logger.info "Updating Contact: #{contact.name}"
 				self.contacts[index].update_contact_time!
 			else
-				$logger.info "Storing new Contact: #{contact.name}"
-				self << contact
+				#Verification is only necessary once: When seeing a new contact.
+				if !Sapling::Contact.valid_node_id?(contact.address, contact.public_key, contact.signature, contact.bcrypt_salt, contact.node_id)
+					logger.warn "Rejected adding/updating contact `#{contact.inspect}` because of invalid node_id."
+				else
+					$logger.info "Storing new Contact: #{contact.name}"
+					self << contact
+				end
 			end
 
 			save_contacts_to_file
@@ -74,7 +74,7 @@ module Sapling
 			FileUtils.mkpath(@contacts_store_location.dirname)
 
 			File.open(@contacts_store_location, 'w') do |f|
-				f.write(self.contacts.to_yaml)
+				f.write(self.buckets.to_yaml)
 			end
 		end
 		
