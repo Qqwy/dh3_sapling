@@ -5,7 +5,11 @@ module Sapling
 		def initialize(node_id, contacts_store_location, settings)
 			@node_id = node_id
 			@contacts_store_location = Pathname.new(contacts_store_location)
-			@buckets = YAML.load_file(contacts_store_location) || [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
+			if File.exists?(@contacts_store_location)
+				@buckets = YAML.load_file(@contacts_store_location) || [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
+			else
+				@buckets = [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
+			end
 		end
 
 
@@ -50,7 +54,7 @@ module Sapling
 				end
 			end
 
-			save_contacts_to_file
+			persist_contacts
 		end
 
 		def find_bucket_for(hash)

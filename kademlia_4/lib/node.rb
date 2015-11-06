@@ -54,7 +54,7 @@ module Sapling
 
 			 # Buckets of contacts. 
 			 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
-			@bucket_list = Sapling::BucketList.new(self.node_id, "sapling_data/#{self.node_id}/", {max_bucket_size:@@k})
+			@bucket_list = Sapling::BucketList.new(self.node_id, "sapling_data/#{self.node_id}/bucket_list.yml", {max_bucket_size:@@k})
 
 			known_addresses.each do |address|
 				self.ping Sapling::Contact.new("", address)	
