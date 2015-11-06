@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    </head>
+    <body>
+
+        <p>Sapling Tests.</p>
+
+		<script src="underscore.js"></script>
+
+
+        <script src="http://code.jquery.com/jquery-2.1.4.js"></script>
+		<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha3.js"></script>
+		<script src="elliptic.js"></script>
+
+
+		<script src="bcrypt.js"></script>
+		<script src="base64.js"></script>
+
+		<script>
+		function bcryptCheckPassword(plaintext, hash){
+			x = bCrypt.new();
+			x.checkpw(plaintext, hash, function(does_it_match){
+				return does_it_match;
+			});
+		}
+
+		function urlsafePaddinglessBase64Encode(str){
+			return Base64.encodeURI(str).replace(/[\n=]/,'');
+		}
+		function urlsafePaddinglessBase64Decode(encoded_str){
+			return Base64.decode(encoded_str);
+		}
+
+		function verifyNode(address, public_key, signature, bcrypt_salt, node_id){
+
+
+			var group = ellipticjs.ec('secp256k1');
+
+			var digest = CryptoJS.SHA3(address).toString();
+		}
+
+
+		/*
+		def valid_node_id?(address, public_key, signature, bcrypt_salt, node_id)
+			require 'ecdsa'
+			require 'bcrypt'
+			group = ECDSA::Group::Secp256k1
+			public_key_point = ECDSA::Format::PointOctetString.decode(public_key, group)
+			digest = Sapling.digest_class.digest(address)
+			signature_point = ECDSA::Format::SignatureDerString.decode(signature)
+			test_node_id = Sapling.digest_class.digest(BCrypt::Engine.hash_secret(signature, bcrypt_salt))
+
+			ECDSA.valid_signature?(public_key_point, digest, signature_point) && node_id == test_node_id
+		end
+		*/
+
+		function checkECDSA_Sig(base64_message, base64_pubkey, base64_signature){
+			var message_str = urlsafePaddinglessBase64Decode(base64_message);
+			var pubkey_str = urlsafePaddinglessBase64Decode(base64_pubkey);
+			var signature_str = urlsafePaddinglessBase64Decode(base64_signature);
+
+			var message = str_to_byte_arr(message_str);
+
+			var pubkey = str_to_byte_arr(pubkey_str);
+			var signature = base64_signature;// str_to_byte_arr(signature_str);
+			console.log(message,base64_pubkey,signature);
+
+			var group = ellipticjs.ec('secp256k1');
+
+			var keyobj = group.keyFromPublic(base64_pubkey);
+			return group.verify(message, signature, keyobj);
+		}
+
+		function str_to_byte_arr(str){
+			return str.split('').map(function(curchar){
+				return curchar.charCodeAt(0);
+			});
+		}
+
+
+		var address = "aHR0cDovLzEyNy4wLjAuMTo0NTAx";
+		//var pubkey = "Aix2dqMS7L0npOQ2YegiTrbCWUS4qc8fhw-BgDRpihhx";
+		var pubkey_x = "366e7d29537e43dc6805ccb9a73bd4d3ac31342ccc9c68ebbc9d1699550605d2";
+		var pubkey_y = "cb71f51a3313edf28335cc4cd9dbaaa0856c1f82e441774a5908efc805019bf0";
+		pubkey = {x:pubkey_x, y:pubkey_y}
+		var signature = "MEYCIQCA94JG2SiXpQ_4OMVyNmpmZtlTwixtqZ6SEhk5ZF1d1wIhALzEieZ-A7mAfOCJbrIsv5J2_2b1enc4mmLk0FGExH3x"
+
+
+
+
+		var signature_r = "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+		var signature_s = "984ae96f3d8878021d889bcbc2e958c3638820d816fbb1a2e0371fd822998b1"
+		signature = {r:signature_r, s:signature_s}
+
+		console.log(checkECDSA_Sig(address,pubkey, signature));
+		</script>
+	</body>
+</html>

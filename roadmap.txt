@@ -10,15 +10,22 @@ Kademlia:
 		-Side-step value storage for occupied keys.
 		-Implement as Rack-app, using rack-rpc
 		-Can be RPC-called from endpoints (non-nodes) now as well.
+		-Nice Rack wrapper. Can be instantiated in one line now.
+		-In the Rack stack, env['sapling_node'] can now be used to reference the node object directly.
+		-Keccak now used as default Digest class.
+		-BCrypt used as node-ID generation (and verification) hashing function. Cost 10 to not be too slow during verification.
 
 	TODO:
-		-Error handling
-		-Look for possibilities of better multithreading.
-		
-		-Persist contact information.
+		-Error on blocked port at start.
+		-Proper Caching.
+		-option to provide Data Store folder location in options.
+
 		-ensure find_node works as wanted (returning less than `k` nodes okay or not?)
 		-Test running on multiple systems. (Local there seems to be a problem with XMLRPC + soft-threads that makes Client<->Server connection sometimes deadlock -> timeout)
 
+		-Persist contact information.
+		-Persistent Contacts storing. Possibly this means that BCrypt can become even harder (verification then only necessary when contact not yet in contact list)
+		-Make private what can be private in ./lib/node.rb
 
 
 
@@ -30,3 +37,20 @@ Distributed Hash Tree (DH3):
 
 		-Write new version of paper
 
+Client-Side:
+	TODO:
+		-Node-ID-verifying. (ECDSA + BCrypt + SHA3(512))
+		-Key generation (SHA3(512))
+		-Signature Generation (ECDSA)
+		-Urlsafe Paddingless Base64
+
+		-Find multiple nodes from starting server; Request / Save data on those nodes (not just on starting server node). Pick node at random to mistify the keys you want to read/store.
+
+
+
+
+
+
+File-Storage Application:
+	-Flesh out tree structure.
+	
