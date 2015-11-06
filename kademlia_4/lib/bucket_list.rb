@@ -1,10 +1,16 @@
 module Sapling
 	class BucketList
 
-		attr_reader :buckets, :node_id
-		def initialize(node_id, settings)
+		attr_reader :buckets, :node_id, :contacts_store_location
+		def initialize(node_id, contacts_store_location, settings)
 			@node_id = node_id
 			@buckets = [Sapling::Bucket.new(0, Sapling.digest_class.hash_size, settings)]
+			@contacts_store_location = Pathname.new(contacts_store_location)
+
+			contacts = YAML.load_file(contacts_store_location) || {}
+			contacts.each do |c|
+				self << c
+			end
 		end
 
 
@@ -43,6 +49,8 @@ module Sapling
 				$logger.info "Storing new Contact: #{contact.name}"
 				self << contact
 			end
+
+			save_contacts_to_file
 		end
 
 		def find_bucket_for(hash)
@@ -61,6 +69,15 @@ module Sapling
 		def contacts
 			self.buckets.map(&:contacts).flatten
 		end
+
+		def persist_contacts
+			FileUtils.mkpath(@contacts_store_location.dirname)
+
+			File.open(@contacts_store_location, 'w') do |f|
+				f.write(self.contacts.to_yaml)
+			end
+		end
+		
 
 	end
 end

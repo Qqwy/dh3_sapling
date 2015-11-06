@@ -34,7 +34,7 @@ module Sapling
 			@logger.progname = "`#{self.node_id[0..3]}...#{self.node_id[-4..-1]}<->#{@address}`"
 
 
-			@data_store = HashTable.new("data_store/#{self.node_id}") #Value Store, keys are hash digests of the values.
+			@data_store = HashTable.new("sapling_data/#{self.node_id}/data_store") #Value Store, keys are hash digests of the values.
 
 			# Refreshes contents of the datastore by re-broadcasting values every tRefresh seconds.
 			@scheduler = Thread.new do
@@ -52,7 +52,7 @@ module Sapling
 
 			 # Buckets of contacts. 
 			 # for bucket j, where 0 <= j <= k, 2^j <= calc_distance(node.node_id, contact.node_id) < 2^(j+1) 
-			@bucket_list = Sapling::BucketList.new(self.node_id, {max_bucket_size:@@k})
+			@bucket_list = Sapling::BucketList.read_or_create_new(self.node_id, {max_bucket_size:@@k, file_location:"sapling_data/#{self.node_id}/"})
 
 			known_addresses.each do |address|
 				self.ping Sapling::Contact.new("", address)	
@@ -162,6 +162,9 @@ module Sapling
 		def to_contact
 			Sapling::Contact.new(@node_id, @address, @public_key, @signature, @bcrypt_salt)
 		end
+
+
+
 
 		def ping(contact)
 			@logger.info "Calling RPC `ping` on #{contact.name}"
