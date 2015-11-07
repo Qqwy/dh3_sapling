@@ -50,7 +50,7 @@ module Sapling
 			rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError, XMLRPC::FaultException, IOError => e
 	       		$logger.warn "Connecting to `#{@address}` threw the following error: #{e}"
 
-	       		self.can_be_called = false
+	       		@can_be_called = false
 
 	       		raise Sapling::ClientConnectionError
 	   		end

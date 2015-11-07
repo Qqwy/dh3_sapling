@@ -27,6 +27,8 @@ Sapling (Distributed Hash Table):
 		-BCrypt enforce minimum security level.
 		-Make private what can be private in ./lib/node.rb
 
+		-Debugging iterative_find_*.
+
 
 
 Distributed Hash Tree (DH3):

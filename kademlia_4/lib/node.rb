@@ -203,6 +203,7 @@ module Sapling
 			begin
 				contact.client do |c| 
 					hashed_contacts = c.find_node(self.to_contact, key_hash)
+					@logger.unknown "HASHED CONTACTS: #{hashed_contacts}"
 					result = hashed_contacts.map{|hashed_contact| Sapling::Contact.from_hash(hashed_contact)}
 					return result
 				end

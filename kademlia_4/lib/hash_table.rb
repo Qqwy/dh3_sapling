@@ -86,7 +86,7 @@ module Sapling
 				unless File.directory? e #Skip directories
 					if File.mtime(e) < newer_than
 						puts "File: #{e}"
-						result = yield({key: path_to_key(Pathname.new(e)), value: Zlib::Inflate.inflate(File.binread(e))})
+						result = yield({key: path_to_key(Pathname.new(e)), value: Zlib::Inflate.inflate(File.read(e))})
 						if result
 							FileUtils.touch(e)
 							change_happened = true
