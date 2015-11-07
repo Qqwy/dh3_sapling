@@ -1,5 +1,6 @@
 require 'pathname'
 require 'fileutils'
+require 'zlib'
 
 module Sapling
 	#Could maybe improved with Bloom filter.
@@ -17,7 +18,7 @@ module Sapling
 
 			return nil unless File.exists? file_path
 
-			return File.binread file_path
+			return Zlib::Inflate.inflate File.read(file_path)
 		end
 
 		def [](key)
@@ -38,8 +39,8 @@ module Sapling
 			file_path = key_to_path(used_key)
 
 			FileUtils.mkpath(file_path.dirname)
-			File.open(file_path, 'wb') do |f|
-				f.write(value)
+			File.open(file_path, 'w') do |f|
+				f.write(Zlib::Deflate.deflate value)
 			end
 			return used_key
 		end
@@ -58,9 +59,9 @@ module Sapling
 		end
 
 		def path_to_key(path)
-			last_part = path.dirname.to_s
+			last_part = path.dirname.basename.to_s
 			first_part = path.basename.to_s
-			return first_part + last_part
+			return "#{first_part}#{last_part}"
 		end
 
 
@@ -85,7 +86,7 @@ module Sapling
 				unless File.directory? e #Skip directories
 					if File.mtime(e) < newer_than
 						puts "File: #{e}"
-						result = yield({key: path_to_key(Pathname.new(e)), value: File.binread(e)})
+						result = yield({key: path_to_key(Pathname.new(e)), value: Zlib::Inflate.inflate(File.binread(e))})
 						if result
 							FileUtils.touch(e)
 							change_happened = true

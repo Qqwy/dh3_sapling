@@ -162,7 +162,7 @@ module Sapling
 			begin
 				contact.client do |c|
 					updated_contact_info = c.ping(self.to_contact)
-					add_or_update_contact(updated_contact_info)
+					add_or_update_contact(updated_contact_info, i_was_called:false)
 				end
 			rescue Sapling::ClientConnectionError
 				@logger.info "ping: Disregard contact #{contact.name} because of a Connection Error"
@@ -193,7 +193,7 @@ module Sapling
 		def handle_store(key, value)
 			#key = Sapling.digest_class.digest value
 			actual_key = @data_store.store(key, value)
-			@logger.info "Storing `#{actual_key}` => `#{value}`) on locally"
+			@logger.info "Storing `#{actual_key} `locally"
 			return actual_key
 		end
 
@@ -378,9 +378,9 @@ module Sapling
 			return [closest_node, closest_distance]
 		end
 
-		def add_or_update_contact(contact_info)
+		def add_or_update_contact(contact_info, i_was_called:false)
 			contact = Sapling::Contact.from_hash(contact_info)
-			self.bucket_list.add_or_update_contact(contact)
+			self.bucket_list.add_or_update_contact(contact, node_was_called:i_was_called)
 		end
 
 		#calculates the distance between two hashes: This can both be used between two nodes, a node and a to-be-stored-or-read value or two values.

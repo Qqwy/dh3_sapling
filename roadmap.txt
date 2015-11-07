@@ -1,5 +1,5 @@
 
-Kademlia:
+Sapling (Distributed Hash Table):
 	-kademlia_4 contains most up-to-date version.
 
 	DONE:
@@ -14,17 +14,17 @@ Kademlia:
 		-In the Rack stack, env['sapling_node'] can now be used to reference the node object directly.
 		-Keccak now used as default Digest class.
 		-BCrypt used as node-ID generation (and verification) hashing function. Cost 10 to not be too slow during verification.
+		-Persist contact information.
+		-Persistent Contacts storing. Possibly this means that BCrypt can become even harder (verification then only necessary when contact not yet in contact list)
 
 	TODO:
 		-Error on blocked port at start.
 		-Proper Caching.
-		-option to provide Data Store folder location in options.
 
 		-ensure find_node works as wanted (returning less than `k` nodes okay or not?)
 		-Test running on multiple systems. (Local there seems to be a problem with XMLRPC + soft-threads that makes Client<->Server connection sometimes deadlock -> timeout)
 
-		-Persist contact information.
-		-Persistent Contacts storing. Possibly this means that BCrypt can become even harder (verification then only necessary when contact not yet in contact list)
+		-BCrypt enforce minimum security level.
 		-Make private what can be private in ./lib/node.rb
 
 
@@ -38,11 +38,14 @@ Distributed Hash Tree (DH3):
 		-Write new version of paper
 
 Client-Side:
+	DONE:
+		-Key generation (SHA3(512))
+		-Urlsafe Paddingless Base64
+	
 	TODO:
 		-Node-ID-verifying. (ECDSA + BCrypt + SHA3(512))
-		-Key generation (SHA3(512))
 		-Signature Generation (ECDSA)
-		-Urlsafe Paddingless Base64
+			->ECDSA the problem right now.
 
 		-Find multiple nodes from starting server; Request / Save data on those nodes (not just on starting server node). Pick node at random to mistify the keys you want to read/store.
 

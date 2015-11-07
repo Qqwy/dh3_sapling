@@ -40,14 +40,17 @@ module Sapling
 			end
 		end
 
-		def add_or_update_contact(contact)
+		def add_or_update_contact(contact, node_was_called:false)
 			if index = self.contacts.index(contact) 
 				$logger.info "Updating Contact: #{contact.name}"
 				self.contacts[index].update_contact_time!
+				if node_was_called
+					self.contacts[index].called_me!
+				end
 			else
 				#Verification is only necessary once: When seeing a new contact.
 				if !Sapling::Contact.valid_node_id?(contact.address, contact.public_key, contact.signature, contact.bcrypt_salt, contact.node_id)
-					logger.warn "Rejected adding/updating contact `#{contact.inspect}` because of invalid node_id."
+					$logger.warn "Rejected adding/updating contact `#{contact.name}` because of invalid node_id."
 				else
 					$logger.info "Storing new Contact: #{contact.name}"
 					self << contact
