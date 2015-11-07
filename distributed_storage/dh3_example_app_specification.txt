@@ -1,0 +1,24 @@
+1. find_value
+2. find_conflicting_values # (unordered) set of all values in the SideStep-direction from a certain hash. 
+3. Building a tree in a useful way is probably:
+	-Start at the root node. Iterate in B-Dir with specified salt, for each iteration call `find_conflicting_values`.
+	-Mark last hash in B-Dir (last non-nil hash) as 'branch' so in the future loading info can be resumed here.
+
+	-After all the nodes in this direction have been loaded, call for each one of them the new B-Dir iterative `find_conflicting_values` (with a different salt) to find each of the children of these.
+
+
+In practice, it seems that A-dir is only used for resolving conflicts. On the Sapling-layer, information thus is stored in a linked-list like structure (the B-dir pointing to consecutive elements).
+
+This seems to be a good way to order  the hierachy of elements:
+
+	-The root node contains one node for each type of content in the tree (users, categories, etc.)
+	-The categories-list is obtained from going in B-Dir from the root node using `h(prevkey+"CATEGORY")`. Signed with the root key owned by the application creator, so only he can make new categories.
+		-Each category contains 0..* filepointers. These are optained using `h(prevkey+"FILEPOINTER")`
+			-Each filepointer contains metadata, including the combined-reference (sapling-key and dh3-ref) of the actual `file`, and a combined-reference to the user who signed(/uploaded) the file(pointer), as their public key is used to sign this message.
+	-The users-list is obtained from going in B-Dir from the root node using `h(prevkey+"USER")`. Users are signed using their own private key (which is generated from their password). At later time, username+password combination can be checked again to see if user is the same: Thus making a new user is easy, taking over the identity of an existing user is not.
+		-Each user contains in its value a field with the public key of the user.
+			-Each filepointer contains metadata, including the combined-reference (sapling-key and dh3-ref) of the actual `file`, and a combined-reference to the user who signed(/uploaded) the file(pointer), as their public key is used to sign this message.
+	-Files are stored in a content-addressible location: `h(value)`. They are separated so they are only loaded when needed, as their contents might be large.
+
+
+
