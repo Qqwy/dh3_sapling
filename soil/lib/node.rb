@@ -348,7 +348,6 @@ module Soil
 		end
 
 		def join_network
-			# TODO: insert values of known nodes
 			close_contacts = iterative_find_node(@node_id)
 			close_contacts.each do |contact|
 				@bucket_list << contact
