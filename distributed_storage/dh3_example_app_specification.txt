@@ -22,3 +22,10 @@ This seems to be a good way to order  the hierachy of elements:
 
 
 
+Steps:
+
+1. public (anonymous) file hosting
+2. user system
+3. private file hosting for users.
+4. sharing privatly hosted files between users.
+5. versioning?

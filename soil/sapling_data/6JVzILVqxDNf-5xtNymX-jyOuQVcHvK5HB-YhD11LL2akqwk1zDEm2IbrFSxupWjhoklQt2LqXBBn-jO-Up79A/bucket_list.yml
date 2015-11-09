@@ -1,0 +1,162 @@
+---
+- !ruby/object:Soil::Bucket
+  start_num: 0
+  end_num: 13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084096
+  contacts:
+  - !ruby/object:Soil::Contact
+    node_id: cTuHyuX9jFXz5zalmcLhwD7CInmym0RD1KkPRdNmNF4sQSDuJgRtugReupLmjgKtEf5OC3xDn2xckUf82afx7A
+    address: http://127.0.0.1:4502
+    public_key: !binary |-
+      A/mqheC5Ml+tgNOeTuVocK2LKbS2CR4wNXil6dy/ekh/
+    signature: !binary |-
+      MEYCIQDItJDoWUr5FJTLuVoUypxV0XCqSVkPvn5/8gL3bCD57wIhAJIvzubP
+      4GrPDJdblV/ydR5A1ETt5iE+72EarUPHLgau
+    bcrypt_salt: "$2a$15$RtNjVlFBsklnZkdLy4SrA."
+    last_contact_time: 2015-11-07 22:14:06.538494426 +01:00
+    times_connected: 83
+    calls_me: false
+    can_be_called: false
+    client: !ruby/object:Soil::Client
+      address: 127.0.0.1
+      port: 4502
+      path: "/"
+      xmlrpc_client: !ruby/object:XMLRPC::Client
+        http_header_extra: 
+        http_last_response: 
+        cookie: 
+        host: 127.0.0.1
+        path: "/"
+        proxy_host: 
+        proxy_port: 
+        use_ssl: false
+        timeout: 10
+        port: 4502
+        password: 
+        user: 
+        auth: 
+        http: !ruby/object:Net::HTTP
+          address: 127.0.0.1
+          port: 4502
+          local_host: 
+          local_port: 
+          curr_http_version: '1.1'
+          keep_alive_timeout: 2
+          last_communicated: 2015-11-07 22:11:39.053618683 +01:00
+          close_on_empty_response: false
+          socket: !ruby/object:Net::BufferedIO
+            io: !ruby/object:TCPSocket {}
+            read_timeout: 10
+            continue_timeout: 
+            debug_output: 
+            rbuf: ''
+            written_bytes: 
+          started: true
+          open_timeout: 10
+          read_timeout: 10
+          continue_timeout: 
+          debug_output: 
+          proxy_from_env: false
+          proxy_uri: 
+          proxy_address: 
+          proxy_port: 80
+          proxy_user: 
+          proxy_pass: 
+          use_ssl: false
+          ssl_context: 
+          ssl_session: 
+          enable_post_connection_check: true
+          sspi_enabled: false
+          ca_file: 
+          ca_path: 
+          cert: 
+          cert_store: 
+          ciphers: 
+          key: 
+          ssl_timeout: 
+          ssl_version: 
+          verify_callback: 
+          verify_depth: 
+          verify_mode: 
+        parser: !ruby/object:XMLRPC::XMLParser::REXMLStreamParser
+          parser_class: &1 !ruby/class 'XMLRPC::XMLParser::REXMLStreamParser::StreamListener'
+        create: !ruby/object:XMLRPC::Create
+          writer: !ruby/object:XMLRPC::XMLWriter::Simple {}
+  - !ruby/object:Soil::Contact
+    node_id: V2IktE4b-sIF3oSRoRARAAll4FCsTmbq3b8YKOqPAN4Yf9sQ2EAkcRnSTBmiiqBYQ-n6bO7N4FVWyXDizXl73w
+    address: http://127.0.0.1:4501
+    public_key: !binary |-
+      AssEGNkhx718W4tjnAQUTaDdgsH/gxFJfhRxEkf7S7fM
+    signature: !binary |-
+      MEQCIF7/KjuR2JRmUtHtqb92rpa3eGRb4GQ4nworoS3EGXL7AiBkS06gzINT
+      myRiZvwm0qbGUGgDwoX0L5RlFpayYV4PCw==
+    bcrypt_salt: "$2a$15$G04fdKSxPfV0o6jNbDf7ve"
+    last_contact_time: 2015-11-08 11:18:43.746235348 +01:00
+    times_connected: 85
+    calls_me: false
+    can_be_called: false
+    client: !ruby/object:Soil::Client
+      address: 127.0.0.1
+      port: 4501
+      path: "/"
+      xmlrpc_client: !ruby/object:XMLRPC::Client
+        http_header_extra: 
+        http_last_response: 
+        cookie: 
+        host: 127.0.0.1
+        path: "/"
+        proxy_host: 
+        proxy_port: 
+        use_ssl: false
+        timeout: 10
+        port: 4501
+        password: 
+        user: 
+        auth: 
+        http: !ruby/object:Net::HTTP
+          address: 127.0.0.1
+          port: 4501
+          local_host: 
+          local_port: 
+          curr_http_version: '1.1'
+          keep_alive_timeout: 2
+          last_communicated: 2015-11-07 22:13:39.115289653 +01:00
+          close_on_empty_response: false
+          socket: !ruby/object:Net::BufferedIO
+            io: !ruby/object:TCPSocket {}
+            read_timeout: 10
+            continue_timeout: 
+            debug_output: 
+            rbuf: ''
+            written_bytes: 
+          started: true
+          open_timeout: 10
+          read_timeout: 10
+          continue_timeout: 
+          debug_output: 
+          proxy_from_env: false
+          proxy_uri: 
+          proxy_address: 
+          proxy_port: 80
+          proxy_user: 
+          proxy_pass: 
+          use_ssl: false
+          ssl_context: 
+          ssl_session: 
+          enable_post_connection_check: true
+          sspi_enabled: false
+          ca_file: 
+          ca_path: 
+          cert: 
+          cert_store: 
+          ciphers: 
+          key: 
+          ssl_timeout: 
+          ssl_version: 
+          verify_callback: 
+          verify_depth: 
+          verify_mode: 
+        parser: !ruby/object:XMLRPC::XMLParser::REXMLStreamParser
+          parser_class: *1
+        create: !ruby/object:XMLRPC::Create
+          writer: !ruby/object:XMLRPC::XMLWriter::Simple {}
+  max_size: 8

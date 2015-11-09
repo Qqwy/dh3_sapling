@@ -88,6 +88,12 @@
 			});
 		}
 
+		function byte_arr_to_str(arr){
+			return arr.map(function(elem){
+				return String.fromCharCode(elem);
+			}).join('');
+		}
+
 
 		var address = "aHR0cDovLzEyNy4wLjAuMTo0NTAx";
 		//var pubkey = "Aix2dqMS7L0npOQ2YegiTrbCWUS4qc8fhw-BgDRpihhx";
